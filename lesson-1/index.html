@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fundamentals of Networking · Workbook</title>
+<style>
+:root{
+  --navy9:#0A1B2E;--navy7:#163351;--navy5:#2A5A8C;--navy1:#D7E3EF;
+  --gold5:#C89B3C;--gold3:#E3C783;--gold7:#8A6520;
+  --paper:#F7F8FA;--ink:#1A1D21;--muted:#555D68;--line:#E3E8EF;--frame:#B9C3CF;
+  --ok:#1F7A4D;--okbg:#E6F4EC;--bad:#B3261E;--badbg:#FCE9E7;--warn:#8A5A00;--warnbg:#FDF1D9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:Georgia,serif;color:var(--navy9);font-weight:400;margin:0}
+a{color:var(--navy5)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 80px}
+header.top{background:var(--navy9);color:#fff;padding:22px 0 26px;margin-bottom:22px}
+header.top .wrap{padding-bottom:0}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--gold7);text-transform:uppercase}
+header.top .kicker{color:var(--gold3)}
+header.top h1{color:#fff;font-size:clamp(30px,5vw,46px);margin:6px 0 10px}
+header.top p{color:var(--navy1);margin:0;max-width:760px}
+.idrow{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.idrow label{display:flex;flex-direction:column;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold3)}
+.idrow input{margin-top:4px;padding:8px 10px;border-radius:8px;border:1px solid var(--navy5);background:var(--navy7);color:#fff;font:inherit;min-width:220px}
+.kwbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.kwbar span{background:var(--navy7);color:var(--gold3);border:1px solid var(--navy5);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700}
+section.act{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:20px}
+section.act>header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+section.act>header h2{font-size:28px;margin-right:6px}
+.num{display:inline-block;width:30px;height:30px;border-radius:15px;background:var(--gold5);color:var(--navy9);text-align:center;line-height:30px;font-weight:700;font-size:15px}
+.pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:999px;background:var(--gold5);color:var(--navy9)}
+.pill.navy{background:var(--navy9);color:var(--gold3)}
+.howto{color:var(--muted);font-size:15px;margin:0 0 12px}
+.kw{background:var(--warnbg);box-shadow:inset 0 -3px 0 var(--gold5);font-weight:700;padding:0 3px;border-radius:3px}
+.defn{border-left:6px solid var(--gold5);background:var(--warnbg);border-radius:8px;padding:10px 14px;margin:0 0 14px}
+.defn .tag{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--warn)}
+.defn p{margin:4px 0 0;font-family:Georgia,serif;font-size:18px}
+/* chips + slots */
+.bank{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border:2px dashed var(--frame);border-radius:10px;min-height:56px;background:var(--paper);margin-bottom:14px}
+.bank.empty::after{content:"All placed: use Check";color:var(--muted);font-size:14px;align-self:center}
+.chip{display:inline-block;padding:7px 12px;border-radius:8px;background:#fff;border:1.5px solid var(--navy5);color:var(--navy9);font-weight:600;font-size:15px;cursor:grab;user-select:none;touch-action:none;line-height:1.3}
+.chip.green{border-color:var(--ok);color:var(--ok);font-weight:800}
+.chip.red{border-color:var(--bad);color:var(--bad);font-weight:800}
+.chip.sel{outline:3px solid var(--gold5);outline-offset:1px}
+.chip.ghost{position:fixed;pointer-events:none;z-index:1000;opacity:.92;box-shadow:0 6px 18px rgba(10,27,46,.25);cursor:grabbing}
+.slot{min-height:44px;border:2px dashed var(--frame);border-radius:8px;padding:4px;display:flex;align-items:center;flex-wrap:wrap;background:#FBFCFD;transition:background .15s}
+.slot.hover,.slot.target{background:var(--navy1);border-color:var(--navy5)}
+.slot .chip{width:100%;cursor:grab}
+.slot.right{border-color:var(--ok);background:var(--okbg)}
+.slot.wrong{border-color:var(--bad);background:var(--badbg)}
+/* tables */
+table.grid{border-collapse:collapse;width:100%}
+table.grid th{background:var(--navy9);color:#fff;text-align:left;padding:8px 10px;font-size:14px;letter-spacing:.03em}
+table.grid td{border-top:1px solid var(--line);padding:6px;vertical-align:middle}
+table.grid td.rowh{font-weight:700;color:var(--navy7);width:150px;padding-left:10px}
+table.grid.fixed{table-layout:fixed}
+table.grid.fixed th:first-child{width:150px}
+/* match list */
+.match{display:grid;grid-template-columns:230px 1fr;gap:8px 12px;align-items:center}
+.match .desc{font-size:16px}
+/* dropdown blanks */
+.para{font-size:18px;line-height:2.1;margin:0 0 10px}
+select.blank{font:inherit;font-weight:700;color:var(--navy9);padding:3px 6px;border-radius:6px;border:2px solid var(--navy5);background:#fff;max-width:100%}
+select.blank.right{border-color:var(--ok);background:var(--okbg)}
+select.blank.wrong{border-color:var(--bad);background:var(--badbg)}
+/* notes */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.note{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+.note h3{font-family:system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:6px}
+.note .hint{font-size:14px;color:var(--muted);margin:0 0 6px}
+textarea,input.line{width:100%;font:inherit;font-size:16px;border:1px solid var(--frame);border-radius:8px;padding:8px 10px;background:#FBFCFD;color:var(--ink);resize:vertical}
+textarea{min-height:84px}
+textarea:focus,input:focus,select:focus{outline:3px solid var(--gold3);outline-offset:1px}
+.soWhat{background:var(--badbg);border-color:var(--badbg)}
+.result{background:var(--okbg);border-color:var(--okbg)}
+/* order */
+ol.order{list-style:none;margin:0 0 12px;padding:0;counter-reset:s}
+ol.order li{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--navy5);border-radius:10px;padding:8px 10px;margin-bottom:8px;touch-action:none;user-select:none;cursor:grab}
+ol.order li::before{counter-increment:s;content:counter(s);display:inline-block;min-width:28px;height:28px;border-radius:14px;background:var(--navy9);color:var(--gold3);text-align:center;line-height:28px;font-weight:700}
+ol.order li .txt{flex:1}
+ol.order li button{border:1px solid var(--frame);background:var(--paper);border-radius:6px;width:34px;height:30px;cursor:pointer;font-size:15px}
+ol.order li.right{border-color:var(--ok);background:var(--okbg)}
+ol.order li.wrong{border-color:var(--bad);background:var(--badbg)}
+ol.order li.dragging{opacity:.4}
+/* buttons + feedback */
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+button.btn{font:inherit;font-weight:700;border-radius:8px;padding:8px 16px;cursor:pointer;border:1px solid var(--navy9);background:var(--navy9);color:#fff}
+button.btn.ghostb{background:#fff;color:var(--navy9)}
+button.btn.gold{background:var(--gold5);border-color:var(--gold5);color:var(--navy9)}
+.fb{font-weight:700}
+.fb.good{color:var(--ok)}.fb.meh{color:var(--warn)}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+figure.dia{margin:0 0 12px;text-align:center}
+figure.dia svg{width:100%;max-width:400px;height:auto}
+.cols2>div{min-width:0}
+.finish{background:var(--navy9);color:#fff;border-radius:14px;padding:22px}
+.finish h2{color:#fff}
+.finish p{color:var(--navy1)}
+.status{font-size:13px;color:var(--muted)}
+@media (max-width:720px){
+  .match{grid-template-columns:1fr}
+  .cols2{grid-template-columns:1fr}
+  table.grid td.rowh{width:auto}
+  table.grid{font-size:14px}
+  table.grid th{font-size:12px;padding:6px}
+  table.grid select.blank{font-size:14px;max-width:118px;padding:2px}
+  section.act{padding:16px 12px}
+  table.grid.resp thead{display:none}
+  table.grid.resp tr{display:block;border-top:2px solid var(--line);padding:6px 0}
+  table.grid.resp td{display:block;border:0}
+  table.grid.resp td[data-col]::before{content:attr(data-col);display:block;font-size:12px;font-weight:700;color:var(--gold7);letter-spacing:.06em}
+}
+/* embed mode: one activity, fills an iframe on a slide */
+body.embed header.top,body.embed section.act:not(.shown),body.embed .finish,body.embed .status{display:none}
+body.embed .wrap{max-width:none;padding:0}
+body.embed section.act{border:0;border-radius:0;margin:0;padding:10px 14px}
+body.embed section.act>header h2{font-size:22px}
+body.embed .chip{font-size:14px;padding:5px 9px}
+body.embed .slot{min-height:36px}
+body.embed table.grid td{padding:3px 4px}
+body.embed .howto,body.embed .defn{display:none}
+body.embed .bank{padding:8px;margin-bottom:8px;gap:6px}
+body.embed section.act>header{margin-bottom:6px}
+body.embed .bar{margin-top:6px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="kicker">Year 12 · OCR H446 1.3.3 · Networks · Lesson 1 of 5</div>
+  <h1>Fundamentals of Networking</h1>
+  <p>Fill this in as we go through the slides. It saves on this device automatically. At the end, press <b>Export to PDF</b> and attach the file to the Teams assignment.</p>
+  <div class="idrow">
+    <label>YOUR NAME<input id="stuName" autocomplete="name" placeholder="First and last name"></label>
+    <label>CLASS<input id="stuClass" placeholder="e.g. 12X/Cs1"></label>
+  </div>
+  <div class="kwbar" aria-label="Keywords for this lesson">
+    <span>network</span><span>transmission media</span><span>bandwidth</span><span>NIC</span><span>hub</span><span>switch</span><span>router</span><span>WAP</span><span>frame</span><span>packet</span><span>MAC address</span><span>IP address</span><span>LAN</span><span>WAN</span>
+  </div>
+</div></header>
+
+<main class="wrap" id="main"></main>
+
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.14.0/dist/html2pdf.bundle.min.js" integrity="sha384-EaWTV/aVUkLz3tfwg3+5ycX7Q/d9ET9ruOKUgUuFIRUCfzHO1eo2J62a844iWPmY" crossorigin="anonymous"></script>
+<script>
+"use strict";
+/* ------------------------------------------------------------------ data */
+const KEY = "h446-networks-l1-v1";
+const kw = t => `<span class="kw">${t}</span>`;
+
+const ACTS = [];   // {id, title, kind, render(), check(), report()}
+
+// 1. purposes / drawbacks
+const PURPOSE = [
+  {id:"p1", label:"Share hardware", c:"green", d:"one printer or scanner for a whole floor"},
+  {id:"p2", label:"Share data and software", c:"green", d:"shared drives, network licences"},
+  {id:"p3", label:"Communicate", c:"green", d:"email, messaging, video calls"},
+  {id:"p4", label:"Central management", c:"green", d:"one place for logins, backups, updates, security policy"},
+  {id:"p5", label:"Access to the Internet", c:"green", d:"… and to cloud services"},
+  {id:"d1", label:"Security", c:"red", d:"more ways in for attackers, and malware can spread between machines"},
+  {id:"d2", label:"Cost", c:"red", d:"switches, routers, cabling, and a network manager"},
+  {id:"d3", label:"Dependence", c:"red", d:"if a server or switch fails, many users are affected at once"},
+  {id:"d4", label:"Performance", c:"red", d:"heavy traffic slows everyone sharing the link"},
+];
+const PURPOSE_ORDER = ["d2","p3","d4","p1","p5","d1","p4","d3","p2"];
+
+// 2. transmission media
+const MEDIA_COLS = ["Copper (twisted pair)","Fibre optic","Wireless (Wi-Fi)"];
+const MEDIA = [
+  ["Signal", ["electrical pulses","pulses of light","radio waves"]],
+  ["Distance", ["about 100 m per run","kilometres","tens of metres indoors"]],
+  ["Bandwidth", ["1–10 Gbps (Cat5e to Cat6a)","highest: 10–100+ Gbps","shared by every device on the access point"]],
+  ["Interference", ["affected by electrical noise","immune to electrical interference","walls, other networks, microwaves"]],
+  ["Cost and use", ["cheap; desks and classrooms","expensive; backbones and links between buildings","no cables, but easier to eavesdrop"]],
+];
+const MEDIA_SHUFFLE = [7,12,0,14,4,9,2,11,5,13,1,8,3,10,6];
+
+// 4. hub steps
+const HUB = [
+  {id:"h1", t:"A sends a frame addressed to C."},
+  {id:"h2", t:"The hub repeats the signal out of every other port."},
+  {id:"h3", t:"B and D read the MAC address and throw the frame away. Only C keeps it."},
+  {id:"h4", t:"If B sends at the same time, the signals collide and both must resend."},
+];
+const HUB_START = ["h3","h1","h4","h2"];
+
+// 5. be the switch
+const LEARN = ["A = port 1","B = port 2","C = port 3","D = port 4","nothing new"];
+const OUTP = ["1","2","3","4","2, 3, 4 (flood)"];
+const FRAMES = [["A → D","A = port 1","2, 3, 4 (flood)"],["D → A","D = port 4","1"],["B → A","B = port 2","1"],["A → C","nothing new","2, 3, 4 (flood)"],["C → B","C = port 3","2"]];
+
+// 7. MAC + IP blanks: [text, [answer, options...]]
+const MACP = ["A MAC address is ",["48","32","48","128"]," bits long, written as 12 ",["hexadecimal","binary","denary","hexadecimal"]," digits. The first 24 bits identify the ",["manufacturer","manufacturer","network","user"],". It is a ",["physical","physical","logical"]," address stored in the ",["NIC","NIC","router","switch"],". It is used by ",["switches","switches","routers"]," to deliver frames ",["within one network","within one network","between networks"],"."];
+const IPP = ["An IPv4 address is ",["32","32","48","128"]," bits, written as four ",["denary","denary","hexadecimal"]," numbers from 0 to ",["255","99","255","1024"],". IPv6 addresses are ",["128","32","64","128"]," bits, written in ",["hexadecimal","denary","hexadecimal"],". An IP address is a ",["logical","physical","logical"]," address, usually given to the device by ",["DHCP","DHCP","the manufacturer","the NIC"],". It ",["changes","changes","never changes"]," when the device moves to a different network. It is used by ",["routers","switches","routers"]," to send packets ",["between networks","within one network","between networks"],"."];
+const RULEP = ["The ",["MAC","MAC","IP"]," addresses changed at every hop. The ",["IP","MAC","IP"]," addresses never changed."];
+
+// 8. MAC vs IP
+const MVI = [
+  ["Type", "physical: tied to the hardware", "logical: tied to where you are on the network"],
+  ["Who sets it", "the manufacturer, stored in the NIC", "the network: assigned by DHCP or set manually"],
+  ["Does it change?", "no: same in every network", "yes: new network, new address"],
+  ["Size and format", "48 bits, hexadecimal", "IPv4 32 bits, denary · IPv6 128 bits, hex"],
+  ["Used by", "switches, within one LAN", "routers, between networks"],
+  ["Scope on a journey", "rewritten at every hop", "the same from sender to receiver"],
+];
+const MVI_SHUFFLE = [5,10,1,8,3,11,0,6,9,2,7,4];
+
+// 9. LAN / WAN
+const LANP = ["A ",["LAN","LAN","WAN"]," covers a ",["small","small","large"]," geographical area, usually ",["one site","one site","several countries"],", where the organisation ",["owns","owns","rents"]," the infrastructure."];
+const WANP = ["A ",["WAN","LAN","WAN"]," covers a ",["large","small","large"]," geographical area, connecting ",["LANs","LANs","peripherals"],", using infrastructure owned by ",["third parties","third parties","the organisation"],"."];
+const SCEN = [["The Year 12 computer room","LAN"],["Two school sites 5 miles apart, linked by a line leased from BT","WAN"],["A family’s home Wi-Fi","LAN"],["A bank’s cash machines across the UK","WAN"],["A university campus, 2 km across, with fibre the university laid itself","LAN"],["Your phone browsing on 5G","WAN"]];
+
+/* ------------------------------------------------------------------ state */
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) { S = {}; }
+S.place = S.place || {}; S.val = S.val || {}; S.order = S.order || {};
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 150); }
+
+/* ------------------------------------------------------------------ helpers */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function section(id, n, title, pills, howto, body){
+  const el = document.createElement("section");
+  el.className = "act"; el.id = id;
+  el.innerHTML = `<header><span class="num">${n}</span><h2>${title}</h2>${pills.map(p=>`<span class="pill${p.startsWith("🎯")?" navy":""}">${p}</span>`).join("")}</header>`
+    + (howto ? `<p class="howto">${howto}</p>` : "") + body;
+  $("#main").appendChild(el);
+  return el;
+}
+function chip(id, text, cls=""){ return `<span class="chip ${cls}" data-chip="${id}" tabindex="0" role="button">${esc(text)}</span>`; }
+function slot(group, id){ return `<div class="slot" data-group="${group}" data-slot="${id}" tabindex="0" aria-label="drop zone"></div>`; }
+function bank(group, chipsHtml){ return `<div class="bank" data-group="${group}" data-bank="1">${chipsHtml}</div>`; }
+function bar(id){ return `<div class="bar"><button class="btn" data-check="${id}">Check</button><button class="btn ghostb" data-reset="${id}">Reset</button><span class="fb" id="fb-${id}" aria-live="polite"></span></div>`; }
+function note(id, title, hint, cls="", rows=3){ return `<div class="note ${cls}"><h3>${title}</h3>${hint?`<p class="hint">${hint}</p>`:""}<textarea data-val="${id}" rows="${rows}"></textarea></div>`; }
+function para(id, parts){
+  let k = 0;
+  return `<p class="para">` + parts.map(p => {
+    if (typeof p === "string") return esc(p);
+    const sid = `${id}-${k++}`, opts = p.slice(1);
+    return `<select class="blank" data-val="${sid}" data-ans="${esc(p[0])}"><option value="">……</option>${[...new Set(opts)].map(o=>`<option>${esc(o)}</option>`).join("")}</select>`;
+  }).join("") + `</p>`;
+}
+function feedback(id, r){
+  const el = $("#fb-"+id); if (!el) return;
+  el.textContent = `${r[0]} / ${r[1]} correct` + (r[0]===r[1] ? " ✓ Well done" : (r[0] < r[1] ? ": fix the red ones and check again" : ""));
+  el.className = "fb " + (r[0]===r[1] ? "good" : "meh");
+}
+
+/* ---------------------------------------------------------- drag and drop */
+let selected = null;   // chip element selected by click/tap
+function placeChip(chipEl, target){
+  const group = target.dataset.group;
+  if (!chipEl || chipEl.closest("[data-group]").dataset.group !== group) return;
+  if (target.dataset.slot){
+    const existing = target.querySelector(".chip");
+    if (existing && existing !== chipEl){
+      // swap: send existing to where chipEl came from (slot) or bank
+      const from = chipEl.parentElement;
+      if (from.dataset.slot) from.appendChild(existing); else bankOf(group).appendChild(existing);
+    }
+    target.appendChild(chipEl);
+  } else {
+    target.appendChild(chipEl);
+  }
+  recordGroup(group);
+}
+function bankOf(group){ return $(`.bank[data-group="${group}"]`); }
+function recordGroup(group){
+  const m = {};
+  $$(`.slot[data-group="${group}"]`).forEach(s => { const c = s.querySelector(".chip"); if (c) m[s.dataset.slot] = c.dataset.chip; s.classList.remove("right","wrong"); });
+  S.place[group] = m; save();
+  const b = bankOf(group); b.classList.toggle("empty", !b.querySelector(".chip"));
+  const fb = $("#fb-"+group); if (fb) fb.textContent = "";
+}
+function restoreGroup(group){
+  const m = S.place[group] || {};
+  Object.entries(m).forEach(([sid, cid]) => {
+    const s = $(`.slot[data-group="${group}"][data-slot="${sid}"]`);
+    const c = $(`.chip[data-chip="${cid}"]`, bankOf(group).closest("section"));
+    if (s && c) s.appendChild(c);
+  });
+  const b = bankOf(group); b.classList.toggle("empty", !b.querySelector(".chip"));
+}
+function clearSel(){ if (selected) selected.classList.remove("sel"); selected = null; $$(".slot.target,.bank.target").forEach(e=>e.classList.remove("target")); }
+
+let drag = null;
+document.addEventListener("pointerdown", e => {
+  const c = e.target.closest(".chip");
+  if (!c || e.button > 0) return;
+  drag = {chip:c, x:e.clientX, y:e.clientY, moved:false, ghost:null, over:null};
+  c.setPointerCapture?.(e.pointerId);
+});
+document.addEventListener("pointermove", e => {
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y) < 6) return;
+  if (!drag.moved){
+    drag.moved = true; clearSel();
+    const g = drag.chip.cloneNode(true); g.classList.add("ghost"); g.style.width = drag.chip.offsetWidth+"px";
+    document.body.appendChild(g); drag.ghost = g; drag.chip.style.opacity = ".35";
+  }
+  drag.cx = e.clientX; drag.cy = e.clientY; autoScroll();
+  drag.ghost.style.left = (e.clientX - drag.ghost.offsetWidth/2) + "px";
+  drag.ghost.style.top = (e.clientY - 18) + "px";
+  hoverAt(e.clientX, e.clientY);
+  e.preventDefault();
+});
+// scroll the page while a chip is held near the top or bottom edge
+let scrollRaf = null;
+function autoScroll(){
+  if (scrollRaf || !drag) return;
+  const step = () => {
+    scrollRaf = null;
+    if (!drag || !drag.moved) return;
+    const edge = 70, y = drag.cy;
+    let dy = 0;
+    if (y < edge) dy = -Math.ceil((edge - y) / 4);
+    else if (y > innerHeight - edge) dy = Math.ceil((y - (innerHeight - edge)) / 4);
+    if (dy){ scrollBy(0, dy); hoverAt(drag.cx, drag.cy); scrollRaf = requestAnimationFrame(step); }
+  };
+  scrollRaf = requestAnimationFrame(step);
+}
+function hoverAt(x, y){
+  const under = document.elementFromPoint(x, y);
+  const t = under && under.closest(".slot,.bank");
+  if (drag.over && drag.over !== t) drag.over.classList.remove("hover");
+  if (t && t.dataset.group === drag.chip.closest("[data-group]").dataset.group){ t.classList.add("hover"); drag.over = t; } else drag.over = null;
+}
+document.addEventListener("pointerup", e => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (d.moved){
+    d.ghost.remove(); d.chip.style.opacity = "";
+    if (d.over){ d.over.classList.remove("hover"); placeChip(d.chip, d.over); }
+  } else {
+    // a tap: select / deselect, or drop the selected chip onto this placed chip's slot
+    if (selected === d.chip) { clearSel(); return; }
+    const host = d.chip.parentElement;
+    if (selected && host.dataset.slot && host.dataset.group === selected.closest("[data-group]").dataset.group){ placeChip(selected, host); clearSel(); return; }
+    clearSel(); selected = d.chip; d.chip.classList.add("sel");
+    const g = d.chip.closest("[data-group]").dataset.group;
+    $$(`.slot[data-group="${g}"],.bank[data-group="${g}"]`).forEach(x => x.classList.add("target"));
+  }
+});
+document.addEventListener("pointercancel", () => { if (drag){ drag.ghost?.remove(); drag.chip.style.opacity=""; drag = null; } });
+document.addEventListener("click", e => {
+  const t = e.target.closest(".slot,.bank");
+  if (selected && t && !e.target.closest(".chip")){ placeChip(selected, t); clearSel(); }
+});
+document.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const c = e.target.closest?.(".chip"), t = e.target.closest?.(".slot,.bank");
+  if (c){ e.preventDefault(); if (selected===c) clearSel(); else { clearSel(); selected=c; c.classList.add("sel"); } }
+  else if (t && selected){ e.preventDefault(); placeChip(selected, t); clearSel(); }
+});
+
+function checkPlacement(group, answerOf){
+  let ok = 0; const slots = $$(`.slot[data-group="${group}"]`);
+  slots.forEach(s => { const c = s.querySelector(".chip"); s.classList.remove("right","wrong");
+    if (!c) return; const r = answerOf(s.dataset.slot) === c.dataset.chip; s.classList.add(r?"right":"wrong"); if (r) ok++; });
+  return [ok, slots.length];
+}
+function scorePlacement(group, answerOf, total){
+  const m = S.place[group] || {}; let ok = 0;
+  Object.entries(m).forEach(([s,c]) => { if (answerOf(s) === c) ok++; });
+  return [ok, total];
+}
+function checkSelects(prefix){
+  let ok = 0; const sels = $$(`select[data-val^="${prefix}-"]`);
+  sels.forEach(s => { s.classList.remove("right","wrong"); if (!s.value) return; const r = s.value === s.dataset.ans; s.classList.add(r?"right":"wrong"); if (r) ok++; });
+  return [ok, sels.length];
+}
+function scoreSelects(prefix){
+  const sels = $$(`select[data-val^="${prefix}-"]`); let ok = 0;
+  sels.forEach(s => { if (S.val[s.dataset.val] === s.dataset.ans) ok++; });
+  return [ok, sels.length];
+}
+
+/* ------------------------------------------------------------------ build */
+// 1 purpose
+section("purpose", 1, "What is a network for?", ["✎ MAKE A NOTE","DRAG AND DROP"],
+  "Drag each bold heading next to its description. Green headings are <b>purposes</b>, red headings are <b>drawbacks</b>. On a tablet: tap a heading, then tap a box.",
+  `<div class="defn"><div class="tag">📖 KEYWORD · NETWORK</div><p>A ${kw("network")} is two or more devices connected together, by a cable or wirelessly, so that they can communicate and share resources.</p></div>`
+  + bank("purpose", PURPOSE_ORDER.slice().reverse().map(id => { const p = PURPOSE.find(x=>x.id===id); return chip(p.id, p.label, p.c); }).join(""))
+  + `<div class="match">` + PURPOSE_ORDER.map(id => { const p = PURPOSE.find(x=>x.id===id); return slot("purpose", p.id) + `<div class="desc">${esc(p.d)}</div>`; }).join("") + `</div>`
+  + bar("purpose"));
+ACTS.push({id:"purpose", title:"What is a network for?", check:()=>checkPlacement("purpose", s=>s), score:()=>scorePlacement("purpose", s=>s, PURPOSE.length)});
+
+// 2 media
+const mediaCells = []; MEDIA.forEach((r,i) => r[1].forEach((t,j) => mediaCells.push({id:`m${i}${j}`, t})));
+section("media", 2, "Transmission media", ["✎ MAKE A NOTE","DRAG AND DROP"],
+  "Drag each phrase into the right cell of the table.",
+  `<div class="defn"><div class="tag">📖 KEYWORDS · TRANSMISSION MEDIA · BANDWIDTH</div><p>${kw("Transmission media")} are what the signal travels through: copper cable, fibre optic cable or radio waves. ${kw("Bandwidth")} is the amount of data that can be transmitted in a fixed amount of time, measured in bits per second.</p></div>`
+  + bank("media", MEDIA_SHUFFLE.map(k => chip(mediaCells[k].id, mediaCells[k].t)).join(""))
+  + `<table class="grid resp fixed"><thead><tr><th></th>${MEDIA_COLS.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>`
+  + MEDIA.map((r,i) => `<tr><td class="rowh">${r[0]}</td>` + r[1].map((_,j) => `<td data-col="${MEDIA_COLS[j]}">${slot("media", `m${i}${j}`)}</td>`).join("") + `</tr>`).join("")
+  + `</tbody></table>` + bar("media"));
+ACTS.push({id:"media", title:"Transmission media", check:()=>checkPlacement("media", s=>s), score:()=>scorePlacement("media", s=>s, 15)});
+
+// 3 hardware
+section("hardware", 3, "The hardware: four devices, four jobs", ["✎ MAKE A NOTE"],
+  "For each device, write <b>what it does</b> and <b>which address it uses</b> (MAC, IP or neither). Add your own analogy if it helps.",
+  `<div class="notes">`
+  + note("hw-nic", "NIC · Network interface card", "📖 Keyword: NIC")
+  + note("hw-switch", "Switch", "📖 Keyword: switch")
+  + note("hw-router", "Router", "📖 Keyword: router")
+  + note("hw-wap", "WAP · Wireless access point", "📖 Keyword: WAP")
+  + note("hw-hub", "Hub (obsolete)", "📖 Keyword: hub. Why was it replaced?", "soWhat")
+  + note("hw-home", "Your “router” at home", "It is really several devices in one box. Which ones?")
+  + `</div>`);
+ACTS.push({id:"hardware", title:"The hardware", notes:[["hw-nic","NIC"],["hw-switch","Switch"],["hw-router","Router"],["hw-wap","WAP"],["hw-hub","Hub (obsolete)"],["hw-home","Home “router”"]]});
+
+// diagram helper for hub/switch
+function lanSvg(centre, fill){
+  const pcs=[["A",20,16],["B",300,16],["C",20,170],["D",300,170]];
+  let s=`<svg viewBox="0 0 400 220" width="400" height="220" font-family="system-ui,sans-serif" role="img" aria-label="Four PCs connected to a ${centre}">`;
+  [["M100,40 L160,94"],["M300,40 L240,94"],["M100,190 L160,136"],["M300,190 L240,136"]].forEach(p=>s+=`<path d="${p[0]}" stroke="#B9C3CF" stroke-width="5"/>`);
+  pcs.forEach(([n,x,y])=>s+=`<rect x="${x}" y="${y}" width="80" height="40" rx="7" fill="#fff" stroke="#2A5A8C" stroke-width="1.5"/><text x="${x+40}" y="${y+26}" font-size="15" font-weight="700" fill="#0A1B2E" text-anchor="middle">PC ${n}</text>`);
+  s+=`<rect x="150" y="88" width="100" height="54" rx="9" fill="${fill}"/><text x="200" y="121" font-size="15" font-weight="700" fill="#fff" text-anchor="middle">${centre}</text></svg>`;
+  return s;
+}
+
+// 4 hub
+section("hub", 4, "The hub: shout it to everyone", ["✎ MAKE A NOTE","ORDER THE STEPS"],
+  "Put the four steps in the right order (drag them, or use the arrows). Then note the consequences in <b>So what?</b>",
+  `<div class="cols2"><div><figure class="dia">${lanSvg("HUB","#163351")}</figure><ol class="order" id="hubList"></ol>${bar("hub")}</div>`
+  + `<div>${note("hub-sowhat","So what?","Three problems with a hub. Think: bandwidth, collisions, security.","soWhat",6)}</div></div>`);
+ACTS.push({id:"hub", title:"The hub", check:checkHub, score:()=>{ const o=S.order.hub||HUB_START; let k=0; o.forEach((id,i)=>{ if(HUB[i].id===id) k++; }); return [k,4]; }, notes:[["hub-sowhat","So what?"]]});
+
+// 5 switch
+section("switch", 5, "The switch: learn, then deliver", ["✎ MAKE A NOTE","▢ BE THE SWITCH"],
+  "Rules: <b>Learn</b> the source MAC and the port it came in on. <b>Forward</b> to the destination’s port if it is known; if not, <b>flood</b>. A on port 1, B on 2, C on 3, D on 4. The MAC table starts empty.",
+  `<div class="cols2"><div><figure class="dia">${lanSvg("SWITCH","#2A5A8C")}</figure>`
+  + `<table class="grid"><thead><tr><th>Frame</th><th>Table learns…</th><th>Sent out of port(s)…</th></tr></thead><tbody>`
+  + FRAMES.map((f,i)=>`<tr><td style="font-family:monospace;font-weight:700;padding-left:10px">${i+1}. ${f[0]}</td><td><select class="blank" data-val="sw-${i*2}" data-ans="${esc(f[1])}"><option value="">……</option>${LEARN.map(o=>`<option>${o}</option>`).join("")}</select></td><td><select class="blank" data-val="sw-${i*2+1}" data-ans="${esc(f[2])}"><option value="">……</option>${OUTP.map(o=>`<option>${o}</option>`).join("")}</select></td></tr>`).join("")
+  + `</tbody></table>${bar("switch")}</div><div>${note("sw-result","Result","Why is a switch better than a hub? Use the words bandwidth, collisions and security.","result",7)}</div></div>`);
+ACTS.push({id:"switch", title:"Be the switch", check:()=>checkSelects("sw"), score:()=>scoreSelects("sw"), notes:[["sw-result","Result"]]});
+
+// 6 routers
+section("routers", 6, "Routers: one hop at a time", ["✎ MAKE A NOTE"],
+  "A packet travels PC → Router 1 → Router 2 → Router 3 → Server. Inside every hop’s <b>frame</b> is the same <b>packet</b>.",
+  `<div class="defn"><div class="tag">📖 KEYWORDS · FRAME · PACKET</div><p>A ${kw("packet")} is a unit of data carrying the source and destination <b>IP addresses</b>. A ${kw("frame")} wraps the packet for one hop across a single network, using <b>MAC addresses</b>.</p></div>`
+  + para("rule", RULEP) + bar("rule")
+  + `<div class="notes" style="margin-top:14px">` + note("rt-1","What each router does · 1","What does it read?") + note("rt-2","What each router does · 2","What does it look it up in, and why?") + note("rt-3","What each router does · 3","What does it put the packet in before sending it on?") + `</div>`);
+ACTS.push({id:"rule", title:"Routers: the rule", check:()=>checkSelects("rule"), score:()=>scoreSelects("rule"), notes:[["rt-1","Router step 1"],["rt-2","Router step 2"],["rt-3","Router step 3"]]});
+
+// 7 MAC + IP blanks
+section("addr", 7, "MAC addresses and IP addresses", ["✎ MAKE A NOTE","FILL THE BLANKS"],
+  "Choose the right word for each gap.",
+  `<div class="defn"><div class="tag">📖 KEYWORD · MAC ADDRESS</div><p>A ${kw("MAC address")} is the unique physical address of a network interface card.</p></div>`
+  + para("mac", MACP)
+  + `<div class="defn"><div class="tag">📖 KEYWORD · IP ADDRESS</div><p>An ${kw("IP address")} is a logical address that identifies a device’s location on a network.</p></div>`
+  + para("ip", IPP) + bar("addr"));
+ACTS.push({id:"addr", title:"MAC and IP addresses", check:()=>{ const a=checkSelects("mac"), b=checkSelects("ip"); return [a[0]+b[0], a[1]+b[1]]; }, score:()=>{ const a=scoreSelects("mac"), b=scoreSelects("ip"); return [a[0]+b[0], a[1]+b[1]]; }});
+
+// 8 MAC vs IP
+const mviCells = []; MVI.forEach((r,i) => { mviCells.push({id:`v${i}0`, t:r[1]}); mviCells.push({id:`v${i}1`, t:r[2]}); });
+section("mvi", 8, "MAC vs IP", ["✎ MAKE A NOTE","DRAG AND DROP"],
+  "Drag each phrase into the right cell.",
+  bank("mvi", MVI_SHUFFLE.map(k => chip(mviCells[k].id, mviCells[k].t)).join(""))
+  + `<table class="grid resp fixed"><thead><tr><th></th><th>MAC address</th><th>IP address</th></tr></thead><tbody>`
+  + MVI.map((r,i) => `<tr><td class="rowh">${r[0]}</td><td data-col="MAC address">${slot("mvi",`v${i}0`)}</td><td data-col="IP address">${slot("mvi",`v${i}1`)}</td></tr>`).join("")
+  + `</tbody></table>` + bar("mvi"));
+ACTS.push({id:"mvi", title:"MAC vs IP", check:()=>checkPlacement("mvi", s=>s), score:()=>scorePlacement("mvi", s=>s, 12)});
+
+// 9 LAN / WAN
+section("lanwan", 9, "LAN and WAN", ["✎ MAKE A NOTE","FILL THE BLANKS"],
+  "Complete the definitions, sort the six scenarios, then add your own bullet points.",
+  `<div class="defn"><div class="tag">📖 KEYWORDS · LAN · WAN</div><p>${kw("LAN")}: local area network. ${kw("WAN")}: wide area network. Size is a clue, but <b>who owns the infrastructure</b> decides it.</p></div>`
+  + para("lan", LANP) + para("wan", WANP)
+  + `<table class="grid" style="margin:6px 0 4px"><thead><tr><th>Scenario</th><th style="width:130px">LAN or WAN?</th></tr></thead><tbody>`
+  + SCEN.map((s,i)=>`<tr><td style="padding-left:10px">${i+1}. ${esc(s[0])}</td><td><select class="blank" data-val="scen-${i}" data-ans="${s[1]}"><option value="">……</option><option>LAN</option><option>WAN</option></select></td></tr>`).join("")
+  + `</tbody></table>` + bar("lanwan")
+  + `<div class="notes" style="margin-top:14px">` + note("lan-notes","LAN · bullet points","How is it built? Performance? Examples?","",5) + note("wan-notes","WAN · bullet points","What links does it use? Who provides them? Examples?","",5) + `</div>`);
+ACTS.push({id:"lanwan", title:"LAN and WAN", check:()=>{ const a=checkSelects("lan"), b=checkSelects("wan"), c=checkSelects("scen"); return [a[0]+b[0]+c[0], a[1]+b[1]+c[1]]; }, score:()=>{ const a=scoreSelects("lan"), b=scoreSelects("wan"), c=scoreSelects("scen"); return [a[0]+b[0]+c[0], a[1]+b[1]+c[1]]; }, notes:[["lan-notes","LAN bullet points"],["wan-notes","WAN bullet points"]]});
+
+// finish
+const fin = document.createElement("section"); fin.className = "finish";
+fin.innerHTML = `<h2>Finished? Export your workbook</h2><p>Make sure your name is at the top. <b>Export to PDF</b> downloads a file with all your answers; attach it to the Teams assignment and hand in.</p><div class="bar"><button class="btn gold" id="exportBtn">⬇ Export to PDF</button><button class="btn ghostb" id="printBtn" style="background:transparent;color:#fff;border-color:#fff">Print instead</button><button class="btn ghostb" id="wipeBtn" style="background:transparent;color:#E3C783;border-color:#E3C783">Clear everything</button></div><p class="status" id="saveStatus" style="color:#D7E3EF;margin-top:10px">Your answers save on this device as you work.</p>`;
+$("#main").appendChild(fin);
+
+/* --------------------------------------------------------------- hub order */
+function renderHub(){
+  const ol = $("#hubList"); const order = S.order.hub || HUB_START.slice();
+  ol.innerHTML = order.map(id => `<li data-step="${id}"><span class="txt">${esc(HUB.find(h=>h.id===id).t)}</span><button aria-label="Move up" data-mv="-1">▲</button><button aria-label="Move down" data-mv="1">▼</button></li>`).join("");
+}
+function hubOrderNow(){ return $$("#hubList li").map(li => li.dataset.step); }
+function checkHub(){ let k=0; $$("#hubList li").forEach((li,i)=>{ li.classList.remove("right","wrong"); const r = HUB[i].id===li.dataset.step; li.classList.add(r?"right":"wrong"); if(r) k++; }); return [k,4]; }
+$("#hubList").addEventListener("click", e => {
+  const b = e.target.closest("button[data-mv]"); if (!b) return;
+  const li = b.closest("li"), dir = +b.dataset.mv;
+  if (dir < 0 && li.previousElementSibling) li.parentNode.insertBefore(li, li.previousElementSibling);
+  if (dir > 0 && li.nextElementSibling) li.parentNode.insertBefore(li.nextElementSibling, li);
+  afterHubMove();
+});
+function afterHubMove(){ S.order.hub = hubOrderNow(); save(); $$("#hubList li").forEach(l=>l.classList.remove("right","wrong")); $("#fb-hub").textContent=""; }
+let hdrag = null;
+$("#hubList").addEventListener("pointerdown", e => {
+  const li = e.target.closest("li"); if (!li || e.target.closest("button")) return;
+  hdrag = {li, y:e.clientY, moved:false}; li.setPointerCapture?.(e.pointerId);
+});
+$("#hubList").addEventListener("pointermove", e => {
+  if (!hdrag) return;
+  if (!hdrag.moved && Math.abs(e.clientY-hdrag.y) < 6) return;
+  hdrag.moved = true; hdrag.li.classList.add("dragging");
+  const others = $$("#hubList li").filter(l => l !== hdrag.li);
+  const after = others.find(l => { const r = l.getBoundingClientRect(); return e.clientY < r.top + r.height/2; });
+  if (after) $("#hubList").insertBefore(hdrag.li, after); else $("#hubList").appendChild(hdrag.li);
+  e.preventDefault();
+});
+const endH = () => { if (!hdrag) return; hdrag.li.classList.remove("dragging"); if (hdrag.moved) afterHubMove(); hdrag = null; };
+$("#hubList").addEventListener("pointerup", endH); $("#hubList").addEventListener("pointercancel", endH);
+
+/* ------------------------------------------------------------ wire inputs */
+renderHub();
+["purpose","media","mvi"].forEach(restoreGroup);
+$$("[data-val]").forEach(el => {
+  const k = el.dataset.val;
+  if (S.val[k] != null) el.value = S.val[k];
+  el.addEventListener("input", () => { S.val[k] = el.value; el.classList?.remove("right","wrong"); save(); });
+  el.addEventListener("change", () => { S.val[k] = el.value; save(); });
+});
+$("#stuName").value = S.name || ""; $("#stuClass").value = S.cls || "";
+$("#stuName").addEventListener("input", e => { S.name = e.target.value; save(); });
+$("#stuClass").addEventListener("input", e => { S.cls = e.target.value; save(); });
+
+document.addEventListener("click", e => {
+  const c = e.target.closest("[data-check]"), r = e.target.closest("[data-reset]");
+  if (c){ const a = ACTS.find(x => x.id === c.dataset.check); feedback(a.id, a.check()); }
+  if (r){
+    const id = r.dataset.reset;
+    if (["purpose","media","mvi"].includes(id)){ const b = bankOf(id); $$(`.slot[data-group="${id}"] .chip`).forEach(ch => b.appendChild(ch)); recordGroup(id); }
+    if (id === "hub"){ delete S.order.hub; renderHub(); save(); }
+    const pre = {switch:["sw"], rule:["rule"], addr:["mac","ip"], lanwan:["lan","wan","scen"]}[id] || [];
+    pre.forEach(p => $$(`select[data-val^="${p}-"]`).forEach(s => { s.value=""; s.classList.remove("right","wrong"); delete S.val[s.dataset.val]; }));
+    save(); const fb = $("#fb-"+id); if (fb) fb.textContent = "";
+  }
+});
+
+/* ------------------------------------------------------------- export */
+function reportHtml(){
+  const name = (S.name||"").trim() || "(no name)", cls = (S.cls||"").trim();
+  const st = "font-family:Arial,sans-serif;color:#1A1D21;font-size:11pt;line-height:1.4";
+  const h2 = t => `<h2 style="font-family:Georgia,serif;font-weight:400;color:#0A1B2E;font-size:16pt;margin:14px 0 6px;border-bottom:2px solid #C89B3C;padding-bottom:3px">${t}</h2>`;
+  const score = a => { const r = a.score(); return `<div style="font-size:9pt;color:#555D68;margin-bottom:4px">Auto-marked: <b>${r[0]} / ${r[1]}</b></div>`; };
+  const cell = t => `<td style="border:1px solid #B9C3CF;padding:4px 6px;vertical-align:top">${t}</td>`;
+  const th = t => `<th style="border:1px solid #0A1B2E;background:#0A1B2E;color:#fff;padding:4px 6px;text-align:left;font-size:10pt">${t}</th>`;
+  const mark = (got, ans) => !got ? `<span style="color:#B3261E">(blank)</span>` : `${esc(got)} ${got===ans?'<span style="color:#1F7A4D">✓</span>':'<span style="color:#B3261E">✗</span>'}`;
+  const notesTxt = k => { const v = (S.val[k]||"").trim(); return v ? esc(v).replace(/\n/g,"<br>") : `<span style="color:#B3261E">(not written)</span>`; };
+  const label = (group, sid, list) => { const c = (S.place[group]||{})[sid]; const item = list.find(x=>x.id===c); return item ? mark(item.t||item.label, (list.find(x=>x.id===sid)||{}).t || (list.find(x=>x.id===sid)||{}).label) : mark("", "x"); };
+  const paraTxt = (prefix, parts) => { let k=0; return parts.map(p => typeof p==="string" ? esc(p) : `<b><u>${(()=>{const v=S.val[`${prefix}-${k++}`]||""; return v? esc(v)+(v===p[0]?' <span style="color:#1F7A4D">✓</span>':' <span style="color:#B3261E">✗</span>') : '<span style="color:#B3261E">____</span>';})()}</u></b>`).join(""); };
+  const A = id => ACTS.find(a=>a.id===id);
+  let h = `<div style="${st};padding:4mm">`;
+  h += `<div style="background:#0A1B2E;color:#fff;padding:10px 14px;border-radius:6px"><div style="font-size:9pt;letter-spacing:.1em;color:#E3C783;font-weight:bold">YEAR 12 · OCR H446 1.3.3 · LESSON 1 OF 5 · WORKBOOK</div><div style="font-family:Georgia,serif;font-size:20pt">Fundamentals of Networking</div><div style="font-size:11pt;color:#D7E3EF">${esc(name)}${cls?" · "+esc(cls):""} · exported ${new Date().toLocaleString("en-GB")}</div></div>`;
+  // summary
+  const auto = ACTS.filter(a=>a.score);
+  const tot = auto.reduce((s,a)=>{ const r=a.score(); return [s[0]+r[0], s[1]+r[1]]; },[0,0]);
+  h += `<table style="border-collapse:collapse;width:100%;margin-top:8px;font-size:10pt"><tr>${th("Activity")}${th("Auto-marked")}</tr>${auto.map(a=>{const r=a.score(); return `<tr>${cell(a.title)}${cell(r[0]+" / "+r[1])}</tr>`;}).join("")}<tr>${cell("<b>Total</b>")}${cell(`<b>${tot[0]} / ${tot[1]}</b>`)}</tr></table>`;
+  // 1
+  h += `<div style="page-break-inside:avoid">` + h2("1 · What is a network for?") + score(A("purpose"));
+  h += `<table style="border-collapse:collapse;width:100%">` + PURPOSE_ORDER.map(id => { const p = PURPOSE.find(x=>x.id===id); const got = PURPOSE.find(x=>x.id===(S.place.purpose||{})[id]); return `<tr>${cell(got? `<b style="color:${got.c==="green"?"#1F7A4D":"#B3261E"}">${esc(got.label)}</b> ${got.id===id?"✓":'<span style="color:#B3261E">✗</span>'}` : '<span style="color:#B3261E">(blank)</span>')}${cell(esc(p.d))}</tr>`; }).join("") + `</table></div>`;
+  // 2
+  h += `<div style="page-break-inside:avoid">` + h2("2 · Transmission media") + score(A("media"));
+  h += `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("")}${MEDIA_COLS.map(th).join("")}</tr>` + MEDIA.map((r,i)=>`<tr>${cell("<b>"+r[0]+"</b>")}${r[1].map((_,j)=>cell(label("media",`m${i}${j}`,mediaCells))).join("")}</tr>`).join("") + `</table></div>`;
+  // 3
+  h += `<div style="page-break-inside:avoid">` + h2("3 · The hardware") + `<table style="border-collapse:collapse;width:100%">` + A("hardware").notes.map(([k,t])=>`<tr>${cell("<b>"+t+"</b>")}${cell(notesTxt(k))}</tr>`).join("") + `</table></div>`;
+  // 4
+  const ho = S.order.hub || HUB_START;
+  h += `<div style="page-break-inside:avoid">` + h2("4 · The hub") + score(A("hub")) + `<ol style="margin:0 0 6px 18px;padding:0">` + ho.map((id,i)=>`<li>${esc(HUB.find(x=>x.id===id).t)} ${HUB[i].id===id?'<span style="color:#1F7A4D">✓</span>':'<span style="color:#B3261E">✗</span>'}</li>`).join("") + `</ol><b>So what?</b><div style="border:1px solid #B9C3CF;padding:6px">${notesTxt("hub-sowhat")}</div></div>`;
+  // 5
+  h += `<div style="page-break-inside:avoid">` + h2("5 · The switch") + score(A("switch")) + `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("Frame")}${th("Table learns")}${th("Sent out of")}</tr>` + FRAMES.map((f,i)=>`<tr>${cell(f[0])}${cell(mark(S.val["sw-"+(i*2)]||"",f[1]))}${cell(mark(S.val["sw-"+(i*2+1)]||"",f[2]))}</tr>`).join("") + `</table><div style="margin-top:6px"><b>Result</b><div style="border:1px solid #B9C3CF;padding:6px">${notesTxt("sw-result")}</div></div></div>`;
+  // 6
+  h += `<div style="page-break-inside:avoid">` + h2("6 · Routers") + score(A("rule")) + `<p>${paraTxt("rule", RULEP)}</p><b>What each router does</b><ol style="margin:4px 0 0 18px;padding:0">${["rt-1","rt-2","rt-3"].map(k=>`<li>${notesTxt(k)}</li>`).join("")}</ol></div>`;
+  // 7
+  h += `<div style="page-break-inside:avoid">` + h2("7 · MAC addresses and IP addresses") + score(A("addr")) + `<p>${paraTxt("mac", MACP)}</p><p>${paraTxt("ip", IPP)}</p></div>`;
+  // 8
+  h += `<div style="page-break-inside:avoid">` + h2("8 · MAC vs IP") + score(A("mvi")) + `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("")}${th("MAC address")}${th("IP address")}</tr>` + MVI.map((r,i)=>`<tr>${cell("<b>"+r[0]+"</b>")}${cell(label("mvi",`v${i}0`,mviCells))}${cell(label("mvi",`v${i}1`,mviCells))}</tr>`).join("") + `</table></div>`;
+  // 9
+  h += `<div style="page-break-inside:avoid">` + h2("9 · LAN and WAN") + score(A("lanwan")) + `<p>${paraTxt("lan", LANP)}</p><p>${paraTxt("wan", WANP)}</p><table style="border-collapse:collapse;width:100%;font-size:10pt">${SCEN.map((s,i)=>`<tr>${cell(esc(s[0]))}${cell(mark(S.val["scen-"+i]||"",s[1]))}</tr>`).join("")}</table><div class="cols" style="margin-top:6px"><b>LAN bullet points</b><div style="border:1px solid #B9C3CF;padding:6px;margin-bottom:6px">${notesTxt("lan-notes")}</div><b>WAN bullet points</b><div style="border:1px solid #B9C3CF;padding:6px">${notesTxt("wan-notes")}</div></div></div>`;
+  return h + `</div>`;
+}
+function fileName(){ const n = (S.name||"student").trim().replace(/[^\w\- ]+/g,"").replace(/\s+/g,"-") || "student"; return `Networks-L1-Workbook-${n}.pdf`; }
+$("#exportBtn").addEventListener("click", async () => {
+  if (!(S.name||"").trim()){ alertBox("Add your name at the top first, so your teacher knows whose workbook this is."); $("#stuName").focus(); return; }
+  const btn = $("#exportBtn"); btn.disabled = true; btn.textContent = "Making your PDF…";
+  const host = document.createElement("div"); host.style.cssText = "position:fixed;left:-10000px;top:0;width:190mm;background:#fff"; host.innerHTML = reportHtml(); document.body.appendChild(host);
+  try {
+    if (!window.html2pdf) throw new Error("no html2pdf");
+    await html2pdf().set({margin:[8,8,10,8], filename:fileName(), image:{type:"jpeg",quality:.95}, html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}, pagebreak:{mode:["css","avoid-all"]}}).from(host.firstElementChild).save();
+  } catch(err){ printReport(); }
+  host.remove(); btn.disabled = false; btn.textContent = "⬇ Export to PDF";
+});
+function printReport(){
+  const w = window.open("", "_blank");
+  if (!w){ alertBox("Your browser blocked the print window. Allow pop-ups for this page, or use Ctrl+P."); return; }
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${fileName().replace(/\.pdf$/,"")}</title><style>@page{size:A4;margin:10mm}body{margin:0}</style></head><body>${reportHtml()}<script>setTimeout(()=>print(),300)<\/script></body></html>`);
+  w.document.close();
+}
+$("#printBtn").addEventListener("click", printReport);
+$("#wipeBtn").addEventListener("click", () => { if (confirm("Clear every answer in this workbook? This cannot be undone.")) { try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); } });
+function alertBox(msg){ const p = $("#saveStatus"); p.textContent = msg; p.style.color = "#E3C783"; }
+
+/* ------------------------------------------------------------- embed mode */
+const params = new URLSearchParams(location.search);
+const emb = params.get("embed");
+if (emb && document.getElementById(emb)){ document.body.classList.add("embed"); document.getElementById(emb).classList.add("shown"); }
+</script>
+</body>
+</html>
