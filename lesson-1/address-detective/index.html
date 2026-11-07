@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Address detective · H446 Networks</title>
+<style>
+:root{--navy9:#0A1B2E;--navy7:#163351;--navy5:#2A5A8C;--navy1:#D7E3EF;--gold5:#C89B3C;--gold3:#E3C783;--gold7:#8A6520;
+--paper:#F7F8FA;--ink:#1A1D21;--muted:#555D68;--line:#E3E8EF;--frame:#B9C3CF;--ok:#1F7A4D;--okbg:#E6F4EC;--bad:#B3261E;--badbg:#FCE9E7;--warnbg:#FDF1D9;--warn:#8A5A00}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:Georgia,serif;font-weight:400;color:var(--navy9);margin:0}
+code,.mono{font-family:ui-monospace,Consolas,monospace}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 40px}
+header.top{background:var(--navy9);color:#fff;padding:18px 0 20px;margin-bottom:16px}
+header.top .k{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--gold3)}
+header.top h1{color:#fff;font-size:clamp(26px,4vw,38px);margin:4px 0 6px}
+header.top p{color:var(--navy1);margin:0;max-width:820px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.lab{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:6px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.steps div{background:var(--paper);border-radius:10px;padding:10px 12px;font-size:15px}
+.steps b.n{display:inline-block;width:24px;height:24px;border-radius:12px;background:var(--gold5);color:var(--navy9);text-align:center;line-height:24px;margin-right:6px}
+.cmd{background:var(--navy9);color:#fff;border-radius:6px;padding:2px 8px;font-family:ui-monospace,Consolas,monospace;font-size:14px;white-space:nowrap}
+textarea{width:100%;min-height:170px;font:13px/1.4 ui-monospace,Consolas,monospace;border:1px solid var(--frame);border-radius:10px;padding:10px;background:#FBFCFD;resize:vertical}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+button{font:inherit;font-weight:700;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--navy9);background:var(--navy9);color:#fff}
+button.ghost{background:#fff;color:var(--navy9)}
+button.gold{background:var(--gold5);border-color:var(--gold5);color:var(--navy9)}
+button.small{padding:4px 10px;font-size:13px}
+.note{font-size:13px;color:var(--muted)}
+.adapter{border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:16px;overflow:hidden}
+.adapter>header{background:var(--navy7);color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.adapter>header h2{color:#fff;font-size:22px}
+.adapter>header span{color:var(--navy1);font-size:14px}
+.adapter .body{padding:14px 16px;display:grid;gap:14px}
+.row{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.row h3{font-family:system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:6px}
+.big{font:700 24px ui-monospace,Consolas,monospace;color:var(--navy9);word-break:break-all}
+.oui{background:var(--navy5);color:#fff;border-radius:6px;padding:2px 6px}
+.nic{background:var(--gold7);color:#fff;border-radius:6px;padding:2px 6px}
+.bits{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.byte{border:1px solid var(--line);border-radius:6px;padding:4px 6px;text-align:center;font-size:12px;background:var(--paper)}
+.byte b{display:block;font:700 15px ui-monospace,Consolas,monospace;color:var(--navy9)}
+.byte code{font-size:13px;letter-spacing:.04em}
+.net{color:var(--navy5);font-weight:700}.host{color:var(--gold7);font-weight:700}
+.flag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700;margin:4px 6px 0 0}
+.flag.ok{background:var(--okbg);color:var(--ok)}.flag.warn{background:var(--warnbg);color:var(--warn)}.flag.bad{background:var(--badbg);color:var(--bad)}.flag.info{background:var(--navy1);color:var(--navy7)}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:4px 12px;font-size:15px}
+.kv dt{color:var(--muted)}.kv dd{margin:0}
+.empty{color:var(--muted)}
+.conv{display:grid;grid-template-columns:auto auto auto;gap:14px;align-items:end}
+.conv label{font-size:13px;font-weight:700;color:var(--navy7);display:flex;flex-direction:column;gap:4px}
+.conv input{font:600 18px ui-monospace,Consolas,monospace;padding:6px 8px;border:2px solid var(--navy5);border-radius:8px;width:130px}
+.toggles{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+.toggles button{width:46px;padding:4px 0;font-family:ui-monospace,Consolas,monospace;background:#fff;color:var(--navy9);border-color:var(--frame)}
+.toggles button.on{background:var(--navy9);color:var(--gold3);border-color:var(--navy9)}
+.toggles small{display:block;font-size:10px;color:var(--muted)}
+.toggles button.on small{color:var(--navy1)}
+.qs li{margin-bottom:6px}
+@media (max-width:760px){.steps{grid-template-columns:1fr}.kv{grid-template-columns:1fr}.conv{grid-template-columns:1fr}}
+body.embed header.top{display:none}
+body.embed .wrap{max-width:none;padding:8px 10px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="k">YEAR 12 · OCR H446 1.3.3 · NETWORKS · LESSON 1</div>
+  <h1>Address detective</h1>
+  <p>Paste what <span class="cmd">ipconfig /all</span> says about your computer. The detective labels your MAC, IPv4 and IPv6 addresses and your default gateway, names your network card’s manufacturer, and shows every address in binary.</p>
+</div></header>
+<main class="wrap">
+  <div class="card">
+    <div class="steps">
+      <div><b class="n">1</b>Open <b>Command Prompt</b> (Start, type <b>cmd</b>, press Enter).</div>
+      <div><b class="n">2</b>Type <span class="cmd">ipconfig /all | clip</span> and press Enter. That copies the whole output.</div>
+      <div><b class="n">3</b>Click in the box below and paste (<b>Ctrl+V</b>). No Command Prompt? Press <b>Use a sample</b>.</div>
+    </div>
+    <textarea id="raw" spellcheck="false" placeholder="Paste your ipconfig /all output here…"></textarea>
+    <div class="bar">
+      <button class="gold" id="go">Investigate</button>
+      <button class="ghost" id="sample">Use a sample</button>
+      <button class="ghost" id="clear">Clear</button>
+      <span class="note">Everything stays on this page. Only the <b>Look it up online</b> button sends anything: the first half of one MAC address.</span>
+    </div>
+  </div>
+
+  <div id="out"></div>
+
+  <div class="card">
+    <div class="lab">Converter: one byte in denary, hex and binary</div>
+    <div class="conv">
+      <label>Denary (0–255)<input id="cDen" inputmode="numeric" value="26"></label>
+      <label>Hexadecimal<input id="cHex" value="1A"></label>
+      <label>Binary<input id="cBin" value="00011010" style="width:150px"></label>
+    </div>
+    <div class="toggles" id="tog"></div>
+    <p class="note" style="margin:8px 0 0">Click the bits to flip them. One hex digit is exactly 4 bits, which is why MAC and IPv6 addresses are written in hex.</p>
+  </div>
+
+  <div class="card">
+    <div class="lab">Detective questions</div>
+    <ol class="qs">
+      <li>What is your MAC address, and which company made your network card?</li>
+      <li>What is your IPv4 address? Is it <b>private</b> or <b>public</b>? How can you tell?</li>
+      <li>Which part of your IPv4 address is the <b>network</b> and which is the <b>host</b>? Compare with your partner: which part is the same?</li>
+      <li>What is your <b>default gateway</b>, and which device is it?</li>
+      <li>Your IPv6 address starts <code>fe80</code>. What does that tell you?</li>
+    </ol>
+  </div>
+</main>
+<script>
+"use strict";
+const SAMPLE = `
+Windows IP Configuration
+
+   Host Name . . . . . . . . . . . . : EC-CS-LAB-14
+   Primary Dns Suffix  . . . . . . . : school.local
+   Node Type . . . . . . . . . . . . : Hybrid
+   IP Routing Enabled. . . . . . . . : No
+
+Ethernet adapter Ethernet:
+
+   Connection-specific DNS Suffix  . : school.local
+   Description . . . . . . . . . . . : Intel(R) Ethernet Connection (7) I219-LM
+   Physical Address. . . . . . . . . : 00-1B-21-4A-9F-10
+   DHCP Enabled. . . . . . . . . . . : Yes
+   Autoconfiguration Enabled . . . . : Yes
+   Link-local IPv6 Address . . . . . : fe80::1c4b:8e2f:a3d1:72b9%12(Preferred)
+   IPv4 Address. . . . . . . . . . . : 10.24.6.57(Preferred)
+   Subnet Mask . . . . . . . . . . . : 255.255.252.0
+   Lease Obtained. . . . . . . . . . : 07 November 2026 08:41:12
+   Lease Expires . . . . . . . . . . : 08 November 2026 08:41:12
+   Default Gateway . . . . . . . . . : 10.24.4.1
+   DHCP Server . . . . . . . . . . . : 10.24.0.10
+   DNS Servers . . . . . . . . . . . : 10.24.0.11
+                                       10.24.0.12
+   NetBIOS over Tcpip. . . . . . . . : Enabled
+
+Wireless LAN adapter Wi-Fi:
+
+   Media State . . . . . . . . . . . : Media disconnected
+   Connection-specific DNS Suffix  . :
+   Description . . . . . . . . . . . : Intel(R) Wi-Fi 6 AX201 160MHz
+   Physical Address. . . . . . . . . : 6A-3F-0C-91-D2-44
+   DHCP Enabled. . . . . . . . . . . : Yes
+   Autoconfiguration Enabled . . . . : Yes
+`;
+/* Organisationally Unique Identifiers kept offline: only well-known ones. Anything else: look it up online. */
+const OUI = {
+  "00000C":"Cisco Systems", "001B21":"Intel", "00155D":"Microsoft (Hyper-V virtual network card)",
+  "005056":"VMware (virtual network card)", "000C29":"VMware (virtual network card)", "000569":"VMware (virtual network card)",
+  "080027":"Oracle VirtualBox (virtual network card)", "001C42":"Parallels (virtual network card)",
+  "B827EB":"Raspberry Pi Foundation", "DCA632":"Raspberry Pi", "E45F01":"Raspberry Pi"
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ------------------------------------------------------------ parsing */
+function parse(text){
+  const lines = text.replace(/\r/g, "").split("\n");
+  const adapters = []; let cur = null, lastKey = null;
+  for (const raw of lines){
+    if (!raw.trim()) continue;
+    const head = raw.match(/^(\S.*?)\s*:\s*$/);
+    if (head && !/^\s/.test(raw)){
+      if (/adapter/i.test(head[1])){ cur = {title: head[1], f: {}}; adapters.push(cur); } else cur = null;
+      lastKey = null; continue;
+    }
+    if (!cur) continue;
+    const kv = raw.match(/^\s+(\S.*?)[\s.]*:\s?(.*)$/);
+    if (kv && /\s\.|\.\s*:|\S\s+:/.test(raw.split(/\s:\s?/)[0] + " :") && !/^\s{20,}\S+$/.test(raw)){
+      const key = kv[1].replace(/[\s.]+$/, "").trim().toLowerCase(), val = kv[2].trim();
+      cur.f[key] = cur.f[key] || []; if (val) cur.f[key].push(val); lastKey = key; continue;
+    }
+    if (lastKey && /^\s{8,}\S/.test(raw)) cur.f[lastKey].push(raw.trim());
+  }
+  return adapters;
+}
+const first = (a, ...keys) => { for (const k of keys){ const hit = Object.keys(a.f).find(x => x.startsWith(k)); if (hit && a.f[hit].length) return a.f[hit]; } return []; };
+const clean = v => v.replace(/\(.*?\)/g, "").replace(/%\d+$/, "").trim();
+
+/* ------------------------------------------------------------ helpers */
+const bin8 = n => n.toString(2).padStart(8, "0");
+function ipv4(s){ const m = (s||"").match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/); if (!m) return null; const o = m.slice(1).map(Number); return o.every(x => x <= 255) ? o : null; }
+const toInt = o => ((o[0]<<24)>>>0) + (o[1]<<16) + (o[2]<<8) + o[3];
+const fromInt = n => [n>>>24 & 255, n>>>16 & 255, n>>>8 & 255, n & 255];
+function prefixLen(mask){ const b = mask.map(bin8).join(""); return /^1*0*$/.test(b) ? b.indexOf("0") === -1 ? 32 : b.indexOf("0") : null; }
+function classify4(o){
+  const [a, b] = o;
+  if (a === 10) return ["Private (10.0.0.0/8)", "ok", "Only used inside a private network such as a school or home. The router translates it to a public address on the way out."];
+  if (a === 172 && b >= 16 && b <= 31) return ["Private (172.16.0.0/12)", "ok", "Only used inside a private network. The router translates it to a public address on the way out."];
+  if (a === 192 && b === 168) return ["Private (192.168.0.0/16)", "ok", "The range most home routers use. Not reachable directly from the Internet."];
+  if (a === 169 && b === 254) return ["Link-local (169.254.x.x)", "bad", "Your computer gave itself this address because no DHCP server answered. It probably can’t reach the Internet."];
+  if (a === 127) return ["Loopback (127.x.x.x)", "info", "This always means ‘this computer’."];
+  if (a === 100 && b >= 64 && b <= 127) return ["Shared address space (100.64.0.0/10)", "info", "Used by some ISPs and mobile networks between their customers and the Internet."];
+  return ["Public", "warn", "A public address is unique on the whole Internet."];
+}
+function expand6(s){
+  s = clean(s).toLowerCase();
+  if (!/^[0-9a-f:]+$/.test(s)) return null;
+  let [l, r] = s.split("::"); const L = l ? l.split(":") : [], R = r !== undefined && r ? r.split(":") : [];
+  if (s.includes("::")){ const miss = 8 - L.length - R.length; if (miss < 0) return null; return [...L, ...Array(miss).fill("0"), ...R].map(x => x.padStart(4, "0")); }
+  return L.length === 8 ? L.map(x => x.padStart(4, "0")) : null;
+}
+function classify6(g){
+  const v = parseInt(g[0], 16);
+  if ((v & 0xffc0) === 0xfe80) return ["Link-local (fe80::/10)", "info", "Works only on your own network link. Every IPv6 device makes one for itself."];
+  if ((v & 0xfe00) === 0xfc00) return ["Unique local (fc00::/7)", "ok", "The IPv6 version of a private address."];
+  if ((v & 0xe000) === 0x2000) return ["Global unicast (2000::/3)", "warn", "A public IPv6 address, reachable across the Internet."];
+  if (g.join("") === "0".repeat(31) + "1") return ["Loopback (::1)", "info", "This computer."];
+  return ["Other IPv6 address", "info", ""];
+}
+function hexBytes(h){ return h.match(/.{2}/g).map(x => `<div class="byte"><b>${x}</b><code>${bin8(parseInt(x,16))}</code></div>`).join(""); }
+
+/* ------------------------------------------------------------ rendering */
+function macBlock(macRaw){
+  const h = (macRaw||"").toUpperCase().replace(/[^0-9A-F]/g, "");
+  if (h.length !== 12) return `<div class="row"><h3>MAC address</h3><p class="empty">No physical address listed.</p></div>`;
+  const o = h.slice(0, 6), dash = h.match(/.{2}/g).join("-");
+  const firstByte = parseInt(h.slice(0, 2), 16), local = !!(firstByte & 2), multicast = !!(firstByte & 1);
+  let maker;
+  if (local) maker = `<span class="flag warn">Randomised / locally administered</span> The second-lowest bit of the first byte is <b>1</b> (<code>${bin8(firstByte)}</code>), so this MAC was <b>made up by the device</b>, not burned in by a manufacturer. Windows and phones do this on Wi-Fi for privacy: the “software can override it” point.`;
+  else if (OUI[o]) maker = `<span class="flag ok">Manufacturer: ${esc(OUI[o])}</span> from the first 24 bits (the <b>OUI</b>) <code>${o.match(/.{2}/g).join("-")}</code>.`;
+  else maker = `<span class="flag info">OUI ${o.match(/.{2}/g).join("-")}</span> isn’t in our offline list. <button class="ghost small" data-lookup="${o}">Look it up online</button> <span class="lk" data-for="${o}"></span>`;
+  return `<div class="row"><h3>MAC address · physical · 48 bits</h3>
+    <div class="big"><span class="oui">${dash.slice(0,8)}</span>-<span class="nic">${dash.slice(9)}</span></div>
+    <p style="margin:6px 0 0"><span class="net">Blue: first 24 bits, the manufacturer (OUI).</span> <span class="host">Gold: last 24 bits, unique to this card.</span></p>
+    <p style="margin:6px 0 0">${maker}</p>
+    <div class="bits">${hexBytes(h)}</div>
+    <p class="note" style="margin:6px 0 0">12 hex digits × 4 bits = 48 bits.${multicast ? " (First bit set: this is a group/multicast address.)" : ""}</p></div>`;
+}
+function v4Block(ipS, maskS, gws){
+  const ip = ipv4(ipS);
+  if (!ip) return `<div class="row"><h3>IPv4 address</h3><p class="empty">No IPv4 address on this adapter.</p></div>`;
+  const mask = ipv4(maskS), p = mask ? prefixLen(mask) : null, [label, cls, why] = classify4(ip);
+  let bits = ip.map((o, i) => {
+    const b = bin8(o).split("").map((c, j) => p === null ? c : `<span class="${i*8+j < p ? "net" : "host"}">${c}</span>`).join("");
+    return `<div class="byte"><b>${o}</b><code>${b}</code></div>`;
+  }).join("");
+  let netLine = "";
+  if (p !== null){
+    const n = fromInt((toInt(ip) & toInt(mask)) >>> 0);
+    netLine = `<p style="margin:6px 0 0">Subnet mask <code>${maskS}</code> = <b>/${p}</b>: the first <span class="net">${p} bits are the network</span>, the last <span class="host">${32-p} bits are the host</span>. Network address <code>${n.join(".")}</code>. Everyone on your network shares the blue bits.</p>`;
+  }
+  const v4gw = gws.map(clean).filter(ipv4);
+  let gwLine = `<p class="empty" style="margin:6px 0 0">No default gateway listed.</p>`;
+  if (v4gw.length){
+    const g = ipv4(v4gw[0]); let same = "";
+    if (mask){ const ok = ((toInt(g) & toInt(mask)) >>> 0) === ((toInt(ip) & toInt(mask)) >>> 0); same = ok ? `<span class="flag ok">Same network as you ✓</span>` : `<span class="flag bad">Different network?</span>`; }
+    gwLine = `<p style="margin:6px 0 0"><b>Default gateway</b> <code>${v4gw[0]}</code> is your <b>router</b>: every packet for another network goes there first. ${same}</p>`;
+  }
+  return `<div class="row"><h3>IPv4 address · logical · 32 bits</h3>
+    <div class="big">${ip.join(".")}</div>
+    <p style="margin:4px 0 0"><span class="flag ${cls}">${label}</span> ${why}</p>
+    <div class="bits">${bits}</div>${netLine}${gwLine}</div>`;
+}
+function v6Block(list){
+  const items = list.map(s => ({s: clean(s), g: expand6(s)})).filter(x => x.g);
+  if (!items.length) return "";
+  return `<div class="row"><h3>IPv6 · logical · 128 bits</h3>` + items.map(({s, g}) => {
+    const [label, cls, why] = classify6(g);
+    return `<div style="margin-bottom:8px"><div class="big" style="font-size:19px">${esc(s)}</div>
+      <p style="margin:4px 0 0"><span class="flag ${cls}">${label}</span> ${why}</p>
+      <p class="note" style="margin:4px 0 0">In full: <code>${g.join(":")}</code> · 8 groups × 4 hex digits × 4 bits = 128 bits. <code>::</code> is shorthand for a run of zero groups.</p></div>`;
+  }).join("") + `</div>`;
+}
+function render(adapters){
+  if (!adapters.length){ $("#out").innerHTML = `<div class="card"><b>No network adapters found.</b> Make sure you pasted the output of <span class="cmd">ipconfig /all</span>, including the lines that end in “adapter …:”.</div>`; return; }
+  const live = adapters.filter(a => !/disconnected/i.test(first(a, "media state").join(" ")));
+  const off = adapters.filter(a => !live.includes(a));
+  let h = "";
+  live.forEach(a => {
+    const name = a.title.replace(/^.*adapter\s*/i, ""), kind = /wireless|wi-?fi|wlan/i.test(a.title) ? "Wi-Fi" : /ethernet/i.test(a.title) ? "Wired (Ethernet)" : "Network adapter";
+    const v4 = clean((first(a, "ipv4 address", "autoconfiguration ipv4", "ip address")[0]) || "");
+    const mask = (first(a, "subnet mask")[0] || "").trim();
+    const gws = first(a, "default gateway"), v6 = [...first(a, "ipv6 address"), ...first(a, "temporary ipv6"), ...first(a, "link-local ipv6")];
+    const dhcp = (first(a, "dhcp enabled")[0] || "").toLowerCase(), dhcpS = clean(first(a, "dhcp server")[0] || ""), dns = first(a, "dns servers").map(clean);
+    h += `<section class="adapter"><header><h2>${esc(name)}</h2><span>${kind} · ${esc(first(a, "description")[0] || "")}</span></header><div class="body">
+      ${macBlock(first(a, "physical address")[0])}
+      ${v4Block(v4, mask, gws)}
+      ${v6Block(v6)}
+      <div class="row"><h3>Where the addresses came from</h3><dl class="kv">
+        <dt>DHCP enabled</dt><dd>${dhcp === "yes" ? `<span class="flag ok">Yes</span> the IPv4 address was <b>given automatically</b> by a DHCP server${dhcpS ? ` (<code>${esc(dhcpS)}</code>)` : ""}. Move to another network and you get a different one.` : dhcp === "no" ? `<span class="flag warn">No</span> someone typed this IP address in by hand (static).` : "not listed"}</dd>
+        <dt>DNS servers</dt><dd>${dns.length ? dns.map(d => `<code>${esc(d)}</code>`).join(", ") + ` <span class="note">They turn names like bbc.co.uk into IP addresses: Lesson 4.</span>` : "not listed"}</dd>
+      </dl></div></div></section>`;
+  });
+  if (off.length) h += `<div class="card"><div class="lab">Disconnected adapters (${off.length})</div>` + off.map(a => `<p style="margin:0 0 8px"><b>${esc(a.title.replace(/^.*adapter\s*/i, ""))}</b> · not connected, so no IP address. Its MAC is still there:</p>${macBlock(first(a, "physical address")[0])}`).join("") + `</div>`;
+  if (!live.length && !off.length) h = `<div class="card">No adapters found.</div>`;
+  $("#out").innerHTML = h;
+}
+$("#go").addEventListener("click", () => render(parse($("#raw").value)));
+$("#sample").addEventListener("click", () => { $("#raw").value = SAMPLE.trim(); render(parse(SAMPLE)); });
+$("#clear").addEventListener("click", () => { $("#raw").value = ""; $("#out").innerHTML = ""; });
+$("#raw").addEventListener("paste", () => setTimeout(() => render(parse($("#raw").value)), 50));
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-lookup]"); if (!b) return;
+  const o = b.dataset.lookup, span = document.querySelector(`.lk[data-for="${o}"]`), url = "https://api.macvendors.com/" + o.match(/.{2}/g).join("-");
+  span.textContent = " looking up…";
+  try { const r = await fetch(url); if (!r.ok) throw 0; span.innerHTML = ` <b>${esc(await r.text())}</b> <span class="note">(from macvendors.com)</span>`; }
+  catch (err) { span.innerHTML = ` <a href="${url}" target="_blank" rel="noopener">Open the lookup in a new tab</a>`; }
+});
+
+/* ------------------------------------------------------------ converter */
+const tog = $("#tog");
+tog.innerHTML = [128,64,32,16,8,4,2,1].map((v, i) => `<button type="button" data-bit="${i}"><span class="b">0</span><small>${v}</small></button>`).join("");
+function setByte(n, from){
+  n = Math.max(0, Math.min(255, n|0));
+  if (from !== "den") $("#cDen").value = n;
+  if (from !== "hex") $("#cHex").value = n.toString(16).toUpperCase().padStart(2, "0");
+  if (from !== "bin") $("#cBin").value = bin8(n);
+  tog.querySelectorAll("button").forEach((b, i) => { const on = (n >> (7 - i)) & 1; b.classList.toggle("on", !!on); b.querySelector(".b").textContent = on; });
+}
+$("#cDen").addEventListener("input", e => { const v = e.target.value.trim(); if (/^\d{1,3}$/.test(v) && +v <= 255) setByte(+v, "den"); });
+$("#cHex").addEventListener("input", e => { const v = e.target.value.trim(); if (/^[0-9a-f]{1,2}$/i.test(v)) setByte(parseInt(v, 16), "hex"); });
+$("#cBin").addEventListener("input", e => { const v = e.target.value.trim(); if (/^[01]{1,8}$/.test(v)) setByte(parseInt(v, 2), "bin"); });
+tog.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; setByte((+$("#cDen").value) ^ (1 << (7 - +b.dataset.bit))); });
+setByte(26);
+if (new URLSearchParams(location.search).get("embed")) document.body.classList.add("embed");
+</script>
+</body>
+</html>
