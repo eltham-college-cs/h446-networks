@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Standards and Protocols · Workbook</title>
+<style>
+:root{
+  --navy9:#0A1B2E;--navy7:#163351;--navy5:#2A5A8C;--navy1:#D7E3EF;
+  --gold5:#C89B3C;--gold3:#E3C783;--gold7:#8A6520;
+  --paper:#F7F8FA;--ink:#1A1D21;--muted:#555D68;--line:#E3E8EF;--frame:#B9C3CF;
+  --ok:#1F7A4D;--okbg:#E6F4EC;--bad:#B3261E;--badbg:#FCE9E7;--warn:#8A5A00;--warnbg:#FDF1D9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:Georgia,serif;color:var(--navy9);font-weight:400;margin:0}
+a{color:var(--navy5)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 80px}
+header.top{background:var(--navy9);color:#fff;padding:22px 0 26px;margin-bottom:22px}
+header.top .wrap{padding-bottom:0}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--gold7);text-transform:uppercase}
+header.top .kicker{color:var(--gold3)}
+header.top h1{color:#fff;font-size:clamp(30px,5vw,46px);margin:6px 0 10px}
+header.top p{color:var(--navy1);margin:0;max-width:760px}
+.idrow{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.idrow label{display:flex;flex-direction:column;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold3)}
+.idrow input{margin-top:4px;padding:8px 10px;border-radius:8px;border:1px solid var(--navy5);background:var(--navy7);color:#fff;font:inherit;min-width:220px}
+.kwbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.kwbar span{background:var(--navy7);color:var(--gold3);border:1px solid var(--navy5);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700}
+section.act{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:20px}
+section.act>header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+section.act>header h2{font-size:28px;margin-right:6px}
+.num{display:inline-block;width:30px;height:30px;border-radius:15px;background:var(--gold5);color:var(--navy9);text-align:center;line-height:30px;font-weight:700;font-size:15px}
+.pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:999px;background:var(--gold5);color:var(--navy9)}
+.pill.navy{background:var(--navy9);color:var(--gold3)}
+.howto{color:var(--muted);font-size:15px;margin:0 0 12px}
+.kw{background:var(--warnbg);box-shadow:inset 0 -3px 0 var(--gold5);font-weight:700;padding:0 3px;border-radius:3px}
+.defn{border-left:6px solid var(--gold5);background:var(--warnbg);border-radius:8px;padding:10px 14px;margin:0 0 14px}
+.defn .tag{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--warn)}
+.defn p{margin:4px 0 0;font-family:Georgia,serif;font-size:18px}
+/* chips + slots */
+.bank{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border:2px dashed var(--frame);border-radius:10px;min-height:56px;background:var(--paper);margin-bottom:14px}
+.bank.empty::after{content:"All placed: use Check";color:var(--muted);font-size:14px;align-self:center}
+.chip{display:inline-block;padding:7px 12px;border-radius:8px;background:#fff;border:1.5px solid var(--navy5);color:var(--navy9);font-weight:600;font-size:15px;cursor:grab;user-select:none;touch-action:none;line-height:1.3}
+.chip.green{border-color:var(--ok);color:var(--ok);font-weight:800}
+.chip.red{border-color:var(--bad);color:var(--bad);font-weight:800}
+.chip.sel{outline:3px solid var(--gold5);outline-offset:1px}
+.chip.ghost{position:fixed;pointer-events:none;z-index:1000;opacity:.92;box-shadow:0 6px 18px rgba(10,27,46,.25);cursor:grabbing}
+.slot{min-height:44px;border:2px dashed var(--frame);border-radius:8px;padding:4px;display:flex;align-items:center;flex-wrap:wrap;background:#FBFCFD;transition:background .15s}
+.slot.hover,.slot.target{background:var(--navy1);border-color:var(--navy5)}
+.slot .chip{width:100%;cursor:grab}
+.slot.right{border-color:var(--ok);background:var(--okbg)}
+.slot.wrong{border-color:var(--bad);background:var(--badbg)}
+/* tables */
+table.grid{border-collapse:collapse;width:100%}
+table.grid th{background:var(--navy9);color:#fff;text-align:left;padding:8px 10px;font-size:14px;letter-spacing:.03em}
+table.grid td{border-top:1px solid var(--line);padding:6px;vertical-align:middle}
+table.grid td.rowh{font-weight:700;color:var(--navy7);width:150px;padding-left:10px}
+table.grid.fixed{table-layout:fixed}
+table.grid.fixed th:first-child{width:150px}
+/* match list */
+.match{display:grid;grid-template-columns:230px 1fr;gap:8px 12px;align-items:center}
+.match .desc{font-size:16px}
+/* dropdown blanks */
+.para{font-size:18px;line-height:2.1;margin:0 0 10px}
+select.blank{font:inherit;font-weight:700;color:var(--navy9);padding:3px 6px;border-radius:6px;border:2px solid var(--navy5);background:#fff;max-width:100%}
+select.blank.right{border-color:var(--ok);background:var(--okbg)}
+select.blank.wrong{border-color:var(--bad);background:var(--badbg)}
+/* notes */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.note{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+.note h3{font-family:system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:6px}
+.note .hint{font-size:14px;color:var(--muted);margin:0 0 6px}
+textarea,input.line{width:100%;font:inherit;font-size:16px;border:1px solid var(--frame);border-radius:8px;padding:8px 10px;background:#FBFCFD;color:var(--ink);resize:vertical}
+textarea{min-height:84px}
+textarea:focus,input:focus,select:focus{outline:3px solid var(--gold3);outline-offset:1px}
+.soWhat{background:var(--badbg);border-color:var(--badbg)}
+.result{background:var(--okbg);border-color:var(--okbg)}
+/* order */
+ol.order{list-style:none;margin:0 0 12px;padding:0;counter-reset:s}
+ol.order li{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--navy5);border-radius:10px;padding:8px 10px;margin-bottom:8px;touch-action:none;user-select:none;cursor:grab}
+ol.order li::before{counter-increment:s;content:counter(s);display:inline-block;min-width:28px;height:28px;border-radius:14px;background:var(--navy9);color:var(--gold3);text-align:center;line-height:28px;font-weight:700}
+ol.order li .txt{flex:1}
+ol.order li button{border:1px solid var(--frame);background:var(--paper);border-radius:6px;width:34px;height:30px;cursor:pointer;font-size:15px}
+ol.order li.right{border-color:var(--ok);background:var(--okbg)}
+ol.order li.wrong{border-color:var(--bad);background:var(--badbg)}
+ol.order li.dragging{opacity:.4}
+/* buttons + feedback */
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+button.btn{font:inherit;font-weight:700;border-radius:8px;padding:8px 16px;cursor:pointer;border:1px solid var(--navy9);background:var(--navy9);color:#fff}
+button.btn.ghostb{background:#fff;color:var(--navy9)}
+button.btn.gold{background:var(--gold5);border-color:var(--gold5);color:var(--navy9)}
+.fb{font-weight:700}
+.fb.good{color:var(--ok)}.fb.meh{color:var(--warn)}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+figure.dia{margin:0 0 12px;text-align:center}
+figure.dia svg{width:100%;max-width:400px;height:auto}
+.cols2>div{min-width:0}
+.finish{background:var(--navy9);color:#fff;border-radius:14px;padding:22px}
+.finish h2{color:#fff}
+.finish p{color:var(--navy1)}
+.status{font-size:13px;color:var(--muted)}
+@media (max-width:720px){
+  .match{grid-template-columns:1fr}
+  .cols2{grid-template-columns:1fr}
+  table.grid td.rowh{width:auto}
+  table.grid{font-size:14px}
+  table.grid th{font-size:12px;padding:6px}
+  table.grid select.blank{font-size:14px;max-width:118px;padding:2px}
+  section.act{padding:16px 12px}
+  table.grid.resp thead{display:none}
+  table.grid.resp tr{display:block;border-top:2px solid var(--line);padding:6px 0}
+  table.grid.resp td{display:block;border:0}
+  table.grid.resp td[data-col]::before{content:attr(data-col);display:block;font-size:12px;font-weight:700;color:var(--gold7);letter-spacing:.06em}
+}
+/* embed mode: one activity, fills an iframe on a slide */
+body.embed header.top,body.embed section.act:not(.shown),body.embed .finish,body.embed .status{display:none}
+body.embed .wrap{max-width:none;padding:0}
+body.embed section.act{border:0;border-radius:0;margin:0;padding:10px 14px}
+body.embed section.act>header h2{font-size:22px}
+body.embed .chip{font-size:14px;padding:5px 9px}
+body.embed .slot{min-height:36px}
+body.embed table.grid td{padding:3px 4px}
+body.embed .howto,body.embed .defn{display:none}
+body.embed .bank{padding:8px;margin-bottom:8px;gap:6px}
+body.embed section.act>header{margin-bottom:6px}
+body.embed .bar{margin-top:6px}
+/* lesson 2 additions */
+.chip.right{border-color:var(--ok);background:var(--okbg)}
+.chip.wrong{border-color:var(--bad);background:var(--badbg)}
+.buckets{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bucket{min-height:150px;border:2px dashed var(--frame);border-radius:10px;padding:10px;background:#FBFCFD;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.bucket.hover,.bucket.target{background:var(--navy1);border-color:var(--navy5)}
+.bucket .bh{width:100%;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--navy7);text-transform:uppercase}
+.bucket .bh small{display:block;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);font-size:13px}
+.bucket.p{border-color:var(--navy5)}
+.bucket.s{border-color:var(--gold5)}
+table.grid td.job .slot{min-height:40px}
+/* email journey + switchboard */
+.trace{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--paper)}
+.trace svg{display:block;width:100%;height:auto}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.tabs button{font:inherit;font-weight:700;font-size:14px;border-radius:999px;padding:6px 14px;border:1.5px solid var(--navy5);background:#fff;color:var(--navy9);cursor:pointer}
+.tabs button.on{background:var(--navy9);color:var(--gold3);border-color:var(--navy9)}
+.tabs button .ok{color:var(--ok)}
+.qbox{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.qbox .q{font-size:17px;margin:0 0 10px}
+.qbox .lab2{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:4px}
+.pbtns{display:flex;flex-wrap:wrap;gap:8px}
+.pbtns button{font:600 16px ui-monospace,Consolas,monospace;min-width:84px;border-radius:8px;padding:8px 12px;border:1.5px solid var(--navy5);background:#fff;color:var(--navy9);cursor:pointer}
+.pbtns button:hover{background:var(--navy1)}
+.pbtns button.right{border-color:var(--ok);background:var(--okbg);color:var(--ok)}
+.pbtns button.wrong{border-color:var(--bad);background:var(--badbg);color:var(--bad)}
+.pbtns button:disabled{cursor:default}
+.msg{margin-top:10px;font-weight:600;min-height:22px}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}.msg.info{color:var(--navy7)}
+.card2{background:var(--navy9);color:#fff;border-radius:12px;padding:14px 16px}
+.card2 .meta{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold3)}
+.card2 .sc{font-family:Georgia,serif;font-size:22px;line-height:1.3;margin-top:4px}
+.progress{display:flex;gap:4px;margin:10px 0 0}
+.progress i{flex:1;height:8px;border-radius:4px;background:var(--line)}
+.progress i.ok{background:var(--ok)}.progress i.bad{background:var(--gold5)}.progress i.now{background:var(--navy5)}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--navy7);cursor:pointer}
+.scorebig{font-family:Georgia,serif;font-size:30px;color:var(--navy9)}
+@media (max-width:720px){.buckets{grid-template-columns:1fr}.pbtns button{min-width:70px;font-size:14px;padding:7px 8px}.card2 .sc{font-size:18px}}
+body.embed .trace{padding:6px 8px}
+body.embed .qbox{margin-top:6px;padding:8px 12px}
+body.embed .qbox .q{font-size:16px;margin-bottom:6px}
+body.embed .bucket{min-height:120px}
+body.embed .note{display:none}
+body.embed .msg{margin-top:6px;font-size:15px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="kicker">Year 12 · OCR H446 1.3.3 · Networks · Lesson 2 of 5</div>
+  <h1>Standards and Protocols</h1>
+  <p>Fill this in as we go through the slides. It saves on this device automatically. At the end, press <b>Export to PDF</b> and attach the file to the Teams assignment.</p>
+  <div class="idrow">
+    <label>YOUR NAME<input id="stuName" autocomplete="name" placeholder="First and last name"></label>
+    <label>CLASS<input id="stuClass" placeholder="e.g. 12X/Cs1"></label>
+  </div>
+  <div class="kwbar" aria-label="Keywords for this lesson">
+    <span>standard</span><span>protocol</span><span>interoperability</span><span>handshake</span><span>HTTP</span><span>HTTPS</span><span>FTP</span><span>SMTP</span><span>POP3</span><span>IMAP</span><span>TCP</span><span>IP</span><span>port</span>
+  </div>
+</div></header>
+
+<main class="wrap" id="main"></main>
+
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.14.0/dist/html2pdf.bundle.min.js" integrity="sha384-EaWTV/aVUkLz3tfwg3+5ycX7Q/d9ET9ruOKUgUuFIRUCfzHO1eo2J62a844iWPmY" crossorigin="anonymous"></script>
+<script>
+"use strict";
+/* ------------------------------------------------------------------ data */
+const KEY = "h446-networks-l2-v1";
+const kw = t => `<span class="kw">${t}</span>`;
+const ACTS = [];   // {id, title, check(), score(), notes}
+
+// 1. who agrees each standard
+const BODIES = ["BSI (British Standards Institution)","IEEE","W3C","Unicode Consortium","USB Implementers Forum","ISO / JPEG committee"];
+const STDS = [
+  ["BS 1363: the UK plug and socket", "BSI (British Standards Institution)"],
+  ["IEEE 802.11: Wi-Fi", "IEEE"],
+  ["HTML: how web pages are marked up", "W3C"],
+  ["Unicode: a code for every character in every language", "Unicode Consortium"],
+  ["USB-C: the connector shape and wiring", "USB Implementers Forum"],
+  ["JPEG: how photos are compressed and stored", "ISO / JPEG committee"],
+];
+
+// 2. standard or protocol
+const SOP = [
+  {id:"q1", t:"HTTP", b:"p"}, {id:"q2", t:"BS 1363 plug and socket", b:"s"}, {id:"q3", t:"TCP", b:"p"},
+  {id:"q4", t:"ASCII character codes", b:"s"}, {id:"q5", t:"SMTP", b:"p"}, {id:"q6", t:"JPEG image format", b:"s"},
+  {id:"q7", t:"IP", b:"p"}, {id:"q8", t:"A4 paper size", b:"s"}, {id:"q9", t:"IMAP", b:"p"},
+  {id:"q10", t:"HTML page markup", b:"s"}, {id:"q11", t:"FTP", b:"p"}, {id:"q12", t:"USB-C connector shape", b:"s"},
+];
+const PROTP = ["A protocol is a set of ",["rules","rules","devices","cables"]," that devices follow so that they can ",["communicate","communicate","be manufactured","be sold"],". If a protocol is ",["standardised","standardised","proprietary","encrypted"],", any device that supports the standard can use it, whoever made it. This is called ",["interoperability","interoperability","encryption","compatibility mode"],"."];
+
+// 3. protocol breakers
+const RULES = ["Format","Addressing","Sequencing","Error checking","Acknowledgement","Timing / flow control"];
+const BREAKS = [
+  ["The sender wrote the message in French. The receiver only reads English.", "Format"],
+  ["The message reached the wrong person’s desk.", "Addressing"],
+  ["The words arrived as THERE YOU HELLO ARE.", "Sequencing"],
+  ["One word was smudged and nobody noticed.", "Error checking"],
+  ["The sender never found out whether the message arrived.", "Acknowledgement"],
+  ["The sender went so fast the receiver missed half of it.", "Timing / flow control"],
+];
+
+// 4. postal model
+const PROTS4 = ["HTTP","TCP","IP","Ethernet / Wi-Fi"];
+const LAYERS = ["Application","Transport","Internet","Network access (link)"];
+const POSTAL = [
+  ["✉ The letter, written in English in the usual layout", "HTTP", "Application"],
+  ["🚚 The delivery service: 2nd class, or Special Delivery with a signature", "TCP", "Transport"],
+  ["🏠 The address and return address on the envelope", "IP", "Internet"],
+  ["🛣 The vans and roads that carry it, one stretch at a time", "Ethernet / Wi-Fi", "Network access (link)"],
+];
+const TCPP = ["TCP is like ",["Special Delivery","Special Delivery","2nd class post"],": it numbers the packets, checks they all ",["arrived","arrived","were encrypted"]," and resends any that are lost. UDP is like ",["2nd class post","Special Delivery","2nd class post"],": faster, but there is ",["no guarantee","no guarantee","a guarantee"]," that every packet arrives, or arrives in order."];
+
+// 5. common protocols
+const PROTOS = [
+  {id:"http",  name:"HTTP",  full:"HyperText Transfer Protocol", port:"80",  job:"Requests and sends web pages between a browser and a web server"},
+  {id:"https", name:"HTTPS", full:"HTTP Secure", port:"443", job:"HTTP with encryption (TLS), so web traffic can’t be read in transit"},
+  {id:"ftp",   name:"FTP",   full:"File Transfer Protocol", port:"21",  job:"Uploads and downloads files between a client and a file server"},
+  {id:"smtp",  name:"SMTP",  full:"Simple Mail Transfer Protocol", port:"25", job:"Sends email from a mail client to a mail server, and between mail servers"},
+  {id:"pop3",  name:"POP3",  full:"Post Office Protocol 3", port:"110", job:"Downloads email to one device and usually deletes it from the server"},
+  {id:"imap",  name:"IMAP",  full:"Internet Message Access Protocol", port:"143", job:"Keeps email on the server and keeps every device in sync"},
+  {id:"tcp",   name:"TCP",   full:"Transmission Control Protocol", port:"",  job:"Splits data into numbered packets, checks they all arrive and resends lost ones"},
+  {id:"ip",    name:"IP",    full:"Internet Protocol", port:"", job:"Adds source and destination IP addresses so packets can be routed between networks"},
+];
+const PROTO_SHUFFLE = ["imap","tcp","http","pop3","ip","ftp","smtp","https"];
+const PORTS = ["21","25","80","110","143","443"];
+
+// 6. email journey
+const APPP = ["HTTP","HTTPS","FTP","SMTP","POP3","IMAP"];
+const EMAIL = {
+  A: {name:"Phone and laptop", ans:["SMTP","SMTP","IMAP"],
+      dev:"Ben’s phone + laptop",
+      last:"Ben reads his email on his <b>phone</b> on the bus and on his <b>laptop</b> at home. Both must show the same inbox, the same folders and which emails he has read."},
+  B: {name:"One desktop, offline", ans:["SMTP","SMTP","POP3"],
+      dev:"Ben’s desktop PC",
+      last:"Ben uses <b>one desktop PC</b>. He wants a copy of every email <b>on the PC</b> so he can read it offline, and his provider only keeps <b>50 MB</b> on the server."},
+};
+const EHOPS = [
+  "Asha presses <b>Send</b>. Her laptop hands the email to her school’s mail server.",
+  "Asha’s mail server looks up where <b>ben@ben-isp.example</b> lives and passes the email across the Internet to Ben’s mail server.",
+];
+const EWHY = {
+  SMTP0:"SMTP pushes the email from the client to the sender’s mail server.",
+  SMTP1:"SMTP again: mail servers use it to pass email on to each other.",
+  IMAP:"IMAP leaves the email on the server, so the phone and the laptop both see the same inbox and read/unread status.",
+  POP3:"POP3 downloads the email to the one PC (offline copy) and normally deletes it from the server, saving his 50 MB.",
+};
+
+// 7. switchboard scenarios
+const BOARD = [
+  ["Logging in to your online bank in a web browser", "HTTPS"],
+  ["Opening an old website whose address starts http:// and shows “Not secure”", "HTTP"],
+  ["A web designer uses FileZilla to upload images to the hosting company’s file server", "FTP"],
+  ["You press Send in your email app", "SMTP"],
+  ["Your school’s mail server passes an email on to gmail.com’s mail server", "SMTP"],
+  ["You read the same inbox on your phone, laptop and tablet", "IMAP"],
+  ["Downloading all your email to one PC to read on a plane, then deleting it from the server", "POP3"],
+  ["Buying concert tickets with your bank card", "HTTPS"],
+  ["You mark an email as read on your phone, and it shows as read on your laptop too", "IMAP"],
+  ["A Raspberry Pi weather station emails an alert to the teacher", "SMTP"],
+  ["A recipe site shows “Not secure” in the address bar, and you search it", "HTTP"],
+  ["An old email program set to “Do not leave a copy on the server”", "POP3"],
+  ["Downloading last year’s exam files from the school’s FTP server", "FTP"],
+  ["Typing your password into a login page that shows a padlock", "HTTPS"],
+];
+const PORT_OF = {HTTP:"80", HTTPS:"443", FTP:"21", SMTP:"25", POP3:"110", IMAP:"143"};
+function boardWhy(chosen, right){
+  const pair = chosen + ">" + right;
+  const T = {
+    "HTTP>HTTPS":"Close: it is the web, but this involves a password or card details. Which version is encrypted?",
+    "HTTPS>HTTP":"It is the web, but there is no padlock: the traffic is not encrypted.",
+    "IMAP>POP3":"IMAP keeps mail on the server and syncs devices. Here the mail ends up on one device and leaves the server.",
+    "POP3>IMAP":"POP3 downloads to one device. Here several devices must stay in sync, so the mail stays on the server.",
+    "SMTP>IMAP":"SMTP sends mail towards a server. Here mail is being read from your mailbox.",
+    "SMTP>POP3":"SMTP sends mail towards a server. Here mail is being collected from your mailbox.",
+    "IMAP>SMTP":"IMAP only reads mail from your own mailbox. Sending or passing mail on is a different protocol.",
+    "POP3>SMTP":"POP3 only collects mail from your own mailbox. Sending or passing mail on is a different protocol.",
+    "HTTP>FTP":"Files are moving to or from a file server with an FTP program.",
+    "HTTPS>FTP":"Files are moving to or from a file server with an FTP program.",
+    "FTP>HTTPS":"This is a web page in a browser, not a file server.",
+    "FTP>HTTP":"This is a web page in a browser, not a file server.",
+  };
+  if (T[pair]) return T[pair];
+  const mail = ["SMTP","POP3","IMAP"], web = ["HTTP","HTTPS"];
+  if (mail.includes(right) && !mail.includes(chosen)) return "This is email. Which of the three email protocols fits?";
+  if (web.includes(right) && !web.includes(chosen)) return "This happens in a web browser. Which web protocol fits?";
+  return "Not this one. Read the scenario again: what is moving, and in which direction?";
+}
+
+/* ------------------------------------------------------------------ state */
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) { S = {}; }
+S.place = S.place || {}; S.val = S.val || {}; S.order = S.order || {};
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 150); }
+
+/* ------------------------------------------------------------------ helpers */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function section(id, n, title, pills, howto, body){
+  const el = document.createElement("section");
+  el.className = "act"; el.id = id;
+  el.innerHTML = `<header><span class="num">${n}</span><h2>${title}</h2>${pills.map(p=>`<span class="pill${p.startsWith("🎯")?" navy":""}">${p}</span>`).join("")}</header>`
+    + (howto ? `<p class="howto">${howto}</p>` : "") + body;
+  $("#main").appendChild(el);
+  return el;
+}
+function chip(id, text, cls=""){ return `<span class="chip ${cls}" data-chip="${id}" tabindex="0" role="button">${esc(text)}</span>`; }
+function slot(group, id){ return `<div class="slot" data-group="${group}" data-slot="${id}" tabindex="0" aria-label="drop zone"></div>`; }
+function bank(group, chipsHtml){ return `<div class="bank" data-group="${group}" data-bank="1">${chipsHtml}</div>`; }
+function bar(id){ return `<div class="bar"><button class="btn" data-check="${id}">Check</button><button class="btn ghostb" data-reset="${id}">Reset</button><span class="fb" id="fb-${id}" aria-live="polite"></span></div>`; }
+function note(id, title, hint, cls="", rows=3){ return `<div class="note ${cls}"><h3>${title}</h3>${hint?`<p class="hint">${hint}</p>`:""}<textarea data-val="${id}" rows="${rows}"></textarea></div>`; }
+function para(id, parts){
+  let k = 0;
+  return `<p class="para">` + parts.map(p => {
+    if (typeof p === "string") return esc(p);
+    const sid = `${id}-${k++}`, opts = p.slice(1);
+    return `<select class="blank" data-val="${sid}" data-ans="${esc(p[0])}"><option value="">……</option>${[...new Set(opts)].map(o=>`<option>${esc(o)}</option>`).join("")}</select>`;
+  }).join("") + `</p>`;
+}
+function feedback(id, r){
+  const el = $("#fb-"+id); if (!el) return;
+  el.textContent = `${r[0]} / ${r[1]} correct` + (r[0]===r[1] ? " ✓ Well done" : (r[0] < r[1] ? ": fix the red ones and check again" : ""));
+  el.className = "fb " + (r[0]===r[1] ? "good" : "meh");
+}
+
+/* ---------------------------------------------------------- drag and drop */
+let selected = null;   // chip element selected by click/tap
+function placeChip(chipEl, target){
+  const group = target.dataset.group;
+  if (!chipEl || chipEl.closest("[data-group]").dataset.group !== group) return;
+  if (target.dataset.bucket){ target.appendChild(chipEl); recordGroup(group); return; }
+  if (target.dataset.slot){
+    const existing = target.querySelector(".chip");
+    if (existing && existing !== chipEl){
+      // swap: send existing to where chipEl came from (slot) or bank
+      const from = chipEl.parentElement;
+      if (from.dataset.slot) from.appendChild(existing); else bankOf(group).appendChild(existing);
+    }
+    target.appendChild(chipEl);
+  } else {
+    target.appendChild(chipEl);
+  }
+  recordGroup(group);
+}
+function bankOf(group){ return $(`.bank[data-group="${group}"]`); }
+function recordGroup(group){
+  const m = {};
+  $$(`.slot[data-group="${group}"]`).forEach(s => { const c = s.querySelector(".chip"); if (c) m[s.dataset.slot] = c.dataset.chip; s.classList.remove("right","wrong"); });
+  $$(`.bucket[data-group="${group}"]`).forEach(bk => $$(".chip", bk).forEach(c => { m["b:"+c.dataset.chip] = bk.dataset.bucket; c.classList.remove("right","wrong"); }));
+  S.place[group] = m; save();
+  const b = bankOf(group); b.classList.toggle("empty", !b.querySelector(".chip"));
+  const fb = $("#fb-"+group); if (fb) fb.textContent = "";
+}
+function restoreGroup(group){
+  const m = S.place[group] || {};
+  Object.entries(m).forEach(([sid, cid]) => {
+    if (sid.startsWith("b:")){ const bk = $(`.bucket[data-group="${group}"][data-bucket="${cid}"]`), c = $(`.chip[data-chip="${sid.slice(2)}"]`, bankOf(group).closest("section")); if (bk && c) bk.appendChild(c); return; }
+    const s = $(`.slot[data-group="${group}"][data-slot="${sid}"]`);
+    const c = $(`.chip[data-chip="${cid}"]`, bankOf(group).closest("section"));
+    if (s && c) s.appendChild(c);
+  });
+  const b = bankOf(group); b.classList.toggle("empty", !b.querySelector(".chip"));
+}
+function clearSel(){ if (selected) selected.classList.remove("sel"); selected = null; $$(".slot.target,.bank.target,.bucket.target").forEach(e=>e.classList.remove("target")); }
+
+let drag = null;
+document.addEventListener("pointerdown", e => {
+  const c = e.target.closest(".chip");
+  if (!c || e.button > 0) return;
+  drag = {chip:c, x:e.clientX, y:e.clientY, moved:false, ghost:null, over:null};
+  c.setPointerCapture?.(e.pointerId);
+});
+document.addEventListener("pointermove", e => {
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX-drag.x, e.clientY-drag.y) < 6) return;
+  if (!drag.moved){
+    drag.moved = true; clearSel();
+    const g = drag.chip.cloneNode(true); g.classList.add("ghost"); g.style.width = drag.chip.offsetWidth+"px";
+    document.body.appendChild(g); drag.ghost = g; drag.chip.style.opacity = ".35";
+  }
+  drag.cx = e.clientX; drag.cy = e.clientY; autoScroll();
+  drag.ghost.style.left = (e.clientX - drag.ghost.offsetWidth/2) + "px";
+  drag.ghost.style.top = (e.clientY - 18) + "px";
+  hoverAt(e.clientX, e.clientY);
+  e.preventDefault();
+});
+// scroll the page while a chip is held near the top or bottom edge
+let scrollRaf = null;
+function autoScroll(){
+  if (scrollRaf || !drag) return;
+  const step = () => {
+    scrollRaf = null;
+    if (!drag || !drag.moved) return;
+    const edge = 70, y = drag.cy;
+    let dy = 0;
+    if (y < edge) dy = -Math.ceil((edge - y) / 4);
+    else if (y > innerHeight - edge) dy = Math.ceil((y - (innerHeight - edge)) / 4);
+    if (dy){ scrollBy(0, dy); hoverAt(drag.cx, drag.cy); scrollRaf = requestAnimationFrame(step); }
+  };
+  scrollRaf = requestAnimationFrame(step);
+}
+function hoverAt(x, y){
+  const under = document.elementFromPoint(x, y);
+  const t = under && under.closest(".slot,.bank,.bucket");
+  if (drag.over && drag.over !== t) drag.over.classList.remove("hover");
+  if (t && t.dataset.group === drag.chip.closest("[data-group]").dataset.group){ t.classList.add("hover"); drag.over = t; } else drag.over = null;
+}
+document.addEventListener("pointerup", e => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (d.moved){
+    d.ghost.remove(); d.chip.style.opacity = "";
+    if (d.over){ d.over.classList.remove("hover"); placeChip(d.chip, d.over); }
+  } else {
+    // a tap: select / deselect, or drop the selected chip onto this placed chip's slot
+    if (selected === d.chip) { clearSel(); return; }
+    const host = d.chip.parentElement;
+    if (selected && (host.dataset.slot || host.dataset.bucket) && host.dataset.group === selected.closest("[data-group]").dataset.group){ placeChip(selected, host); clearSel(); return; }
+    clearSel(); selected = d.chip; d.chip.classList.add("sel");
+    const g = d.chip.closest("[data-group]").dataset.group;
+    $$(`.slot[data-group="${g}"],.bank[data-group="${g}"],.bucket[data-group="${g}"]`).forEach(x => x.classList.add("target"));
+  }
+});
+document.addEventListener("pointercancel", () => { if (drag){ drag.ghost?.remove(); drag.chip.style.opacity=""; drag = null; } });
+document.addEventListener("click", e => {
+  const t = e.target.closest(".slot,.bank,.bucket");
+  if (selected && t && !e.target.closest(".chip")){ placeChip(selected, t); clearSel(); }
+});
+document.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const c = e.target.closest?.(".chip"), t = e.target.closest?.(".slot,.bank,.bucket");
+  if (c){ e.preventDefault(); if (selected===c) clearSel(); else { clearSel(); selected=c; c.classList.add("sel"); } }
+  else if (t && selected){ e.preventDefault(); placeChip(selected, t); clearSel(); }
+});
+
+function checkPlacement(group, answerOf){
+  let ok = 0; const slots = $$(`.slot[data-group="${group}"]`);
+  slots.forEach(s => { const c = s.querySelector(".chip"); s.classList.remove("right","wrong");
+    if (!c) return; const r = answerOf(s.dataset.slot) === c.dataset.chip; s.classList.add(r?"right":"wrong"); if (r) ok++; });
+  return [ok, slots.length];
+}
+function scorePlacement(group, answerOf, total){
+  const m = S.place[group] || {}; let ok = 0;
+  Object.entries(m).forEach(([s,c]) => { if (answerOf(s) === c) ok++; });
+  return [ok, total];
+}
+function checkSelects(prefix){
+  let ok = 0; const sels = $$(`select[data-val^="${prefix}-"]`);
+  sels.forEach(s => { s.classList.remove("right","wrong"); if (!s.value) return; const r = s.value === s.dataset.ans; s.classList.add(r?"right":"wrong"); if (r) ok++; });
+  return [ok, sels.length];
+}
+function scoreSelects(prefix){
+  const sels = $$(`select[data-val^="${prefix}-"]`); let ok = 0;
+  sels.forEach(s => { if (S.val[s.dataset.val] === s.dataset.ans) ok++; });
+  return [ok, sels.length];
+}
+/* ------------------------------------------------------------------ build */
+function selectHtml(id, ans, opts){ return `<select class="blank" data-val="${id}" data-ans="${esc(ans)}"><option value="">……</option>${opts.map(o=>`<option>${esc(o)}</option>`).join("")}</select>`; }
+function bucket(group, name, title, sub, cls){ return `<div class="bucket ${cls}" data-group="${group}" data-bucket="${name}" tabindex="0" aria-label="${esc(title)}"><div class="bh">${title}<small>${sub}</small></div></div>`; }
+function checkBuckets(group, list){
+  let ok = 0;
+  $$(`.bucket[data-group="${group}"] .chip`).forEach(c => { const it = list.find(x=>x.id===c.dataset.chip); const r = it && it.b === c.closest(".bucket").dataset.bucket; c.classList.remove("right","wrong"); c.classList.add(r?"right":"wrong"); if (r) ok++; });
+  return [ok, list.length];
+}
+function scoreBuckets(group, list){
+  const m = S.place[group] || {}; let ok = 0;
+  list.forEach(it => { if (m["b:"+it.id] === it.b) ok++; });
+  return [ok, list.length];
+}
+const add2 = (...rs) => rs.reduce((s,r)=>[s[0]+r[0], s[1]+r[1]], [0,0]);
+
+// 1 standards
+section("std", 1, "Standards: who agrees them?", ["✎ MAKE A NOTE","MATCH"],
+  "Choose the organisation that agrees each standard. Then explain what would go wrong without standards.",
+  `<div class="defn"><div class="tag">📖 KEYWORD · STANDARD</div><p>A ${kw("standard")} is an agreed specification (a model everyone builds to), so that products from different makers fit and work together.</p></div>`
+  + `<table class="grid"><thead><tr><th>Standard</th><th style="width:300px">Agreed by…</th></tr></thead><tbody>`
+  + STDS.map((s,i)=>`<tr><td style="padding-left:10px">${esc(s[0])}</td><td>${selectHtml("std-"+i, s[1], BODIES)}</td></tr>`).join("")
+  + `</tbody></table>` + bar("std")
+  + `<div class="notes" style="margin-top:14px">` + note("std-without","Without standards…","What would go wrong if every manufacturer made its own plug, its own Wi-Fi or its own character codes?","soWhat",4)
+  + note("std-interop","📖 Interoperability","Write the definition from the slide, in your own words.","",4) + `</div>`);
+ACTS.push({id:"std", title:"Standards: who agrees them?", check:()=>checkSelects("std"), score:()=>scoreSelects("std"), notes:[["std-without","Without standards"],["std-interop","Interoperability"]]});
+
+// 2 standard or protocol
+section("sop", 2, "Standard or protocol?", ["✎ MAKE A NOTE","DRAG AND DROP"],
+  "Complete the definition. Then drag each item into the right box. On a tablet: tap an item, then tap a box.",
+  `<div class="defn"><div class="tag">📖 KEYWORDS · PROTOCOL · INTEROPERABILITY</div><p>A ${kw("protocol")} is a set of rules for how devices communicate. ${kw("Interoperability")} is the ability of devices and software from different makers to work together.</p></div>`
+  + para("prot", PROTP)
+  + bank("sop", SOP.map(s => chip(s.id, s.t)).join(""))
+  + `<div class="buckets">` + bucket("sop","p","Protocol","rules for how devices communicate","p") + bucket("sop","s","Standard, not a protocol","an agreed design or format, not rules for a conversation","s") + `</div>`
+  + bar("sop")
+  + `<div class="notes" style="margin-top:14px">` + note("sop-could","COULD · every protocol is also a standard","Every item in your Protocol box is also a standard. How can that be true?","result",3) + `</div>`);
+ACTS.push({id:"sop", title:"Standard or protocol?", check:()=>add2(checkBuckets("sop", SOP), checkSelects("prot")), score:()=>add2(scoreBuckets("sop", SOP), scoreSelects("prot")), notes:[["sop-could","Every protocol is also a standard"]]});
+
+// 3 protocol breakers
+section("rules", 3, "Protocol breakers: what must a protocol define?", ["🗣 TALK PARTNER","✎ MAKE A NOTE"],
+  "Each line is something that went wrong when a rule was broken. Which rule?",
+  `<div class="defn"><div class="tag">📖 KEYWORD · HANDSHAKE</div><p>A ${kw("handshake")} is the exchange at the start of a connection where two devices agree how they will communicate (for example speed and format) before any data is sent.</p></div>`
+  + `<table class="grid"><thead><tr><th>What went wrong</th><th style="width:240px">Rule broken</th></tr></thead><tbody>`
+  + BREAKS.map((b,i)=>`<tr><td style="padding-left:10px">${i+1}. ${esc(b[0])}</td><td>${selectHtml("rule-"+i, b[1], RULES)}</td></tr>`).join("")
+  + `</tbody></table>` + bar("rules")
+  + `<div class="notes" style="margin-top:14px">` + note("rules-sum","A protocol must define…","List at least four things, with a computer example for each (e.g. addressing: IP addresses).","result",5) + `</div>`);
+ACTS.push({id:"rules", title:"Protocol breakers", check:()=>checkSelects("rule"), score:()=>scoreSelects("rule"), notes:[["rules-sum","A protocol must define"]]});
+
+// 4 postal model
+section("postal", 4, "The postal service: a model for protocols", ["✎ MAKE A NOTE","MATCH"],
+  "For each part of sending a letter, choose the protocol that does that job, and the layer it belongs to. We study the layers properly next lesson.",
+  `<table class="grid resp"><thead><tr><th>Sending a letter</th><th style="width:190px">Protocol</th><th style="width:230px">Layer</th></tr></thead><tbody>`
+  + POSTAL.map((p,i)=>`<tr><td style="padding-left:10px">${esc(p[0])}</td><td data-col="Protocol">${selectHtml("post-"+(i*2), p[1], PROTS4)}</td><td data-col="Layer">${selectHtml("post-"+(i*2+1), p[2], LAYERS)}</td></tr>`).join("")
+  + `</tbody></table>` + `<div style="margin-top:12px">` + para("tcp", TCPP) + `</div>` + bar("postal"));
+ACTS.push({id:"postal", title:"The postal service model", check:()=>add2(checkSelects("post"), checkSelects("tcp")), score:()=>add2(scoreSelects("post"), scoreSelects("tcp"))});
+
+// 5 common protocols
+section("protos", 5, "Common protocols and what they do", ["✎ MAKE A NOTE","DRAG AND DROP","COULD: PORTS"],
+  "Drag each job next to its protocol. <b>COULD:</b> choose the well-known port number for the six application protocols.",
+  bank("protos", PROTO_SHUFFLE.map(id => { const p = PROTOS.find(x=>x.id===id); return chip(p.id, p.job); }).join(""))
+  + `<table class="grid resp"><thead><tr><th style="width:190px">Protocol</th><th>Its job</th><th style="width:110px">Port</th></tr></thead><tbody>`
+  + PROTOS.map(p=>`<tr><td class="rowh">${p.name}<div style="font-weight:400;font-size:13px;color:var(--muted)">${p.full}</div></td><td class="job" data-col="Its job">${slot("protos", p.id)}</td><td data-col="Port">${p.port ? selectHtml("port-"+p.id, p.port, PORTS) : `<span style="color:var(--muted);font-size:14px">no port</span>`}</td></tr>`).join("")
+  + `</tbody></table>` + bar("protos"));
+ACTS.push({id:"protos", title:"Common protocols", check:()=>add2(checkPlacement("protos", s=>s), checkSelects("port")), score:()=>add2(scorePlacement("protos", s=>s, PROTOS.length), scoreSelects("port"))});
+
+// 6 email journey
+section("email", 6, "Email journey: which protocol, hop by hop?", ["⌨ ON THE COMPUTER","TRACE IT"],
+  "Asha emails Ben. For each hop, pick the protocol that carries the email. Then switch scenario: does the last hop change?",
+  `<div class="tabs" id="eTabs"></div><div class="trace" id="eDia"></div><div class="qbox" id="eQ"></div>`
+  + `<div class="bar"><button class="btn ghostb" id="eReset">Start both again</button><span class="fb" id="fb-email"></span></div>`
+  + `<div class="notes" style="margin-top:14px">` + note("email-why","POP3 or IMAP?","Why does Ben need IMAP in one scenario and POP3 in the other?","result",4) + `</div>`);
+ACTS.push({id:"email", title:"Email journey", score:()=>emailScore(), notes:[["email-why","POP3 or IMAP?"]]});
+
+// 7 switchboard
+section("board", 7, "Protocol switchboard", ["⌨ ON THE COMPUTER","MUST","COULD: PORTS"],
+  "Ten scenarios. Choose the protocol for each. Your first try is the one that counts. <b>COULD:</b> switch on ports and name the port as well.",
+  `<div class="bar" style="margin:0 0 10px"><label class="toggle"><input type="checkbox" id="bPorts"> Also ask for the port number (COULD)</label></div><div id="bCard"></div>`);
+ACTS.push({id:"board", title:"Protocol switchboard", score:()=>boardScore()});
+
+// 8 homework
+section("hw", 8, "Homework: extend the postal model", ["🏠 HOMEWORK"],
+  "Research, then write in your own words. Finish before next lesson, then export again and resubmit.",
+  `<div class="notes">`
+  + note("hw-https","HTTPS in the postal model","What does HTTPS add to HTTP? Which part of sending a letter does it change, and how?","",5)
+  + note("hw-udp","UDP in the postal model","What is UDP? Which delivery service is it like? Give one use where UDP is better than TCP, and why.","",5)
+  + `</div><div class="notes" style="margin-top:14px">`
+  + note("hw-exam","Exam question [4]","A school buys laptops from two different manufacturers. Explain why both can load web pages from the same web server. Use the words protocol and standard.","",6)
+  + `</div>`);
+ACTS.push({id:"hw", title:"Homework", notes:[["hw-https","HTTPS in the postal model"],["hw-udp","UDP in the postal model"],["hw-exam","Exam question [4]"]]});
+
+// finish
+const fin = document.createElement("section"); fin.className = "finish";
+fin.innerHTML = `<h2>Finished? Export your workbook</h2><p>Make sure your name is at the top. <b>Export to PDF</b> downloads a file with all your answers; attach it to the Teams assignment and hand in.</p><div class="bar"><button class="btn gold" id="exportBtn">⬇ Export to PDF</button><button class="btn ghostb" id="printBtn" style="background:transparent;color:#fff;border-color:#fff">Print instead</button><button class="btn ghostb" id="wipeBtn" style="background:transparent;color:#E3C783;border-color:#E3C783">Clear everything</button></div><p class="status" id="saveStatus" style="color:#D7E3EF;margin-top:10px">Your answers save on this device as you work.</p>`;
+$("#main").appendChild(fin);
+
+/* ------------------------------------------------------- email journey */
+S.email = S.email || {sc:"A", A:{hop:0, first:[]}, B:{hop:0, first:[]}};
+let eBusy = false;
+function emailScore(){ let k = 0; ["A","B"].forEach(sc => (S.email[sc].first||[]).forEach(v => { if (v) k++; })); return [k, 6]; }
+function emailWhy(hop, chosen, sc){
+  if (chosen === "HTTP" || chosen === "HTTPS") return "HTTP(S) moves web pages. If Ben used webmail in a browser, the browser would use HTTPS, but mail apps and mail servers use the email protocols.";
+  if (chosen === "FTP") return "FTP moves files to and from a file server. It isn’t used to send email.";
+  if (hop < 2) return "IMAP and POP3 only collect mail from your own mailbox. Pushing an email on towards its destination is a different protocol.";
+  if (chosen === "SMTP") return "SMTP pushes mail towards a server. Ben’s device is collecting mail from his mailbox.";
+  if (sc === "A") return "POP3 downloads to one device and usually deletes the email from the server, so his laptop wouldn’t see what his phone downloaded.";
+  return "IMAP keeps everything on the server, but Ben only has 50 MB there and wants an offline copy on his PC.";
+}
+function emailDia(){
+  const sc = S.email.sc, st = S.email[sc], E = EMAIL[sc];
+  const N = [[90,"Asha’s laptop","mail client"],[370,"Asha’s mail server","mail.school.example"],[650,"Ben’s mail server","mail.ben-isp.example"],[910,E.dev.replace("Ben’s ",""),"Ben"]];
+  let s = `<svg viewBox="0 0 1000 190" font-family="system-ui,sans-serif" role="img" aria-label="Email path from Asha to Ben">`;
+  for (let i = 0; i < 3; i++){
+    const a = N[i][0] + 80, b = N[i+1][0] - 80, done = i < st.hop, now = i === st.hop;
+    const col = done ? "#1F7A4D" : now ? "#C89B3C" : "#B9C3CF";
+    s += `<path d="M${a},95 L${b},95" stroke="${col}" stroke-width="${now?8:6}"/>`;
+    const lab = done ? E.ans[i] : now ? "?" : "";
+    if (lab) s += `<rect x="${(a+b)/2-46}" y="48" width="92" height="28" rx="14" fill="${done?"#E6F4EC":"#FDF1D9"}" stroke="${col}" stroke-width="1.5"/><text x="${(a+b)/2}" y="67" font-size="15" font-weight="700" fill="${done?"#1F7A4D":"#8A6520"}" text-anchor="middle" font-family="ui-monospace,Consolas,monospace">${lab}</text>`;
+    s += `<text x="${(a+b)/2}" y="128" font-size="12" font-weight="700" fill="${now?"#8A6520":"#555D68"}" text-anchor="middle">hop ${i+1}${i<2?" · push →":" · fetch"}</text>`;
+  }
+  N.forEach(([x,t,sub],i) => {
+    const srv = i === 1 || i === 2;
+    s += `<rect x="${x-80}" y="68" width="160" height="56" rx="9" fill="${srv?"#163351":"#fff"}" stroke="#2A5A8C" stroke-width="1.5"/>`;
+    s += `<text x="${x}" y="92" font-size="14.5" font-weight="700" fill="${srv?"#fff":"#0A1B2E"}" text-anchor="middle">${t}</text>`;
+    s += `<text x="${x}" y="111" font-size="11.5" fill="${srv?"#D7E3EF":"#555D68"}" text-anchor="middle" font-family="ui-monospace,Consolas,monospace">${sub}</text>`;
+  });
+  s += `<text x="90" y="160" font-size="12" fill="#555D68" text-anchor="middle">asha@school.example</text><text x="910" y="160" font-size="12" fill="#555D68" text-anchor="middle">ben@ben-isp.example</text>`;
+  s += `<g id="eEnv" style="display:none"><rect x="-20" y="-13" width="40" height="26" rx="4" fill="#E3C783" stroke="#8A6520" stroke-width="2"/><path d="M-20,-13 L0,3 L20,-13" fill="none" stroke="#8A6520" stroke-width="2"/></g></svg>`;
+  $("#eDia").innerHTML = s;
+}
+function emailRender(){
+  const sc = S.email.sc, st = S.email[sc], E = EMAIL[sc];
+  $("#eTabs").innerHTML = ["A","B"].map(k => `<button data-esc="${k}" class="${k===sc?"on":""}">Scenario ${k}: ${EMAIL[k].name}${S.email[k].hop>=3?' <span class="ok">✓</span>':""}</button>`).join("");
+  emailDia();
+  const from = ["Asha’s laptop","Asha’s mail server","Ben’s mail server"], to = ["Asha’s mail server","Ben’s mail server",E.dev];
+  if (st.hop >= 3){
+    const k = st.first.filter(Boolean).length, other = sc === "A" ? "B" : "A";
+    $("#eQ").innerHTML = `<div class="lab2">Delivered</div><p class="q">The email reached Ben: <b>SMTP → SMTP → ${E.ans[2]}</b>. First-try score for this scenario: <b>${k} / 3</b>.</p>`
+      + (S.email[other].hop < 3 ? `<button class="btn gold" data-esc="${other}">Now try scenario ${other} →</button>` : `<p class="q" style="margin:0">Both done. The first two hops never change. Only the last hop depends on how Ben reads his email. Write why in the box below.</p>`);
+  } else {
+    const q = st.hop < 2 ? EHOPS[st.hop] : E.last + " His device collects the email from his mail server.";
+    $("#eQ").innerHTML = `<div class="lab2">Hop ${st.hop+1} of 3 · ${from[st.hop]} → ${to[st.hop]}</div><p class="q">${q}</p><div class="pbtns">${APPP.map(p=>`<button data-ep="${p}">${p}</button>`).join("")}</div><div class="msg" id="eMsg"></div>`;
+  }
+  const r = emailScore(); const fb = $("#fb-email"); fb.textContent = `First-try score: ${r[0]} / 6`; fb.className = "fb " + (r[0]===6 ? "good" : "meh");
+}
+function emailPick(btn){
+  if (eBusy) return;
+  const sc = S.email.sc, st = S.email[sc], E = EMAIL[sc], p = btn.dataset.ep, h = st.hop, right = E.ans[h];
+  const firstTime = st.first[h] === undefined || st.first[h] === null;
+  const m = $("#eMsg");
+  if (p !== right){
+    if (firstTime) st.first[h] = false; save();
+    btn.classList.add("wrong"); m.className = "msg bad"; m.textContent = "✗ " + emailWhy(h, p, sc);
+    return;
+  }
+  if (firstTime) st.first[h] = true; save();
+  btn.classList.add("right"); $$("#eQ .pbtns button").forEach(b => b.disabled = true);
+  m.className = "msg ok"; m.textContent = "✓ " + (h < 2 ? EWHY["SMTP"+h] : EWHY[right]);
+  eBusy = true;
+  const env = $("#eEnv"), xs = [90,370,650,910], a = xs[h]+80, b = xs[h+1]-80, t0 = performance.now(), dur = 900;
+  env.style.display = "";
+  const step = t => {
+    const q = Math.min(1, (t - t0) / dur), e = q < .5 ? 2*q*q : 1 - Math.pow(-2*q + 2, 2) / 2;
+    env.setAttribute("transform", `translate(${a + (b - a) * e},95)`);
+    if (q < 1) requestAnimationFrame(step); else setTimeout(() => { eBusy = false; st.hop++; save(); emailRender(); if (st.hop < 3){ const mm = $("#eMsg"); mm.className = "msg ok"; mm.textContent = "✓ " + (h < 2 ? EWHY["SMTP"+h] : EWHY[right]); } }, 700);
+  };
+  requestAnimationFrame(step);
+}
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-esc]"); if (t && !eBusy){ S.email.sc = t.dataset.esc; save(); emailRender(); return; }
+  const p = e.target.closest("[data-ep]"); if (p && !p.disabled) emailPick(p);
+});
+$("#eReset").addEventListener("click", () => { S.email = {sc:"A", A:{hop:0, first:[]}, B:{hop:0, first:[]}}; save(); emailRender(); });
+
+/* ---------------------------------------------------------- switchboard */
+function newRound(){
+  const idx = BOARD.map((_,i)=>i);
+  for (let i = idx.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  S.board = {order: idx.slice(0, 10), i: 0, res: [], stage: "p", ports: S.board ? !!S.board.ports : false};
+  save();
+}
+if (!S.board || !Array.isArray(S.board.order)) newRound();
+function boardScore(){ const r = S.board.res || []; return [r.filter(x => x && x.p).length, 10]; }
+function boardPortScore(){ const r = S.board.res || []; const asked = r.filter(x => x && x.port !== undefined && x.port !== null); return [asked.filter(x => x.port).length, asked.length]; }
+function boardRender(){
+  const B = S.board; $("#bPorts").checked = !!B.ports;
+  const prog = `<div class="progress">${B.order.map((_,k)=>{ const r = B.res[k]; return `<i class="${k===B.i && B.i<10 ? "now" : r && r.done ? (r.p ? "ok" : "bad") : ""}"></i>`; }).join("")}</div>`;
+  if (B.i >= 10){
+    const s = boardScore(), ps = boardPortScore();
+    $("#bCard").innerHTML = `<div class="card2"><div class="meta">ROUND COMPLETE</div><div class="sc">First-try score: <b style="color:#E3C783">${s[0]} / 10</b>${ps[1] ? ` · ports ${ps[0]} / ${ps[1]}` : ""}</div>${prog}</div>`
+      + `<div class="qbox"><p class="q">${s[0] >= 9 ? "Excellent. Switch on ports, or try a new round." : s[0] >= 7 ? "Good. Look back at the ones that went gold, then try a new round." : "Go back to section 5 (Common protocols), then try a new round."}</p><button class="btn gold" id="bNew">New round</button></div>`;
+    return;
+  }
+  const [txt, right] = BOARD[B.order[B.i]], r = B.res[B.i] || {};
+  let body = "";
+  if (B.stage === "port"){
+    body = `<div class="lab2">COULD · which port does ${right} use?</div><div class="pbtns">${PORTS.map(p=>`<button data-bport="${p}">${p}</button>`).join("")}</div>`;
+  } else {
+    body = `<div class="lab2">Which protocol?</div><div class="pbtns">${APPP.map(p=>`<button data-bp="${p}">${p}</button>`).join("")}</div>`;
+  }
+  $("#bCard").innerHTML = `<div class="card2"><div class="meta">SCENARIO ${B.i+1} OF 10</div><div class="sc">${esc(txt)}</div>${prog}</div>`
+    + `<div class="qbox">${body}<div class="msg" id="bMsg"></div><div class="bar" style="margin-top:6px"><button class="btn" id="bNext" style="display:none">Next scenario →</button></div></div>`;
+}
+function boardAfterRight(msg){
+  $$("#bCard .pbtns button").forEach(b => b.disabled = true);
+  const m = $("#bMsg"); m.className = "msg ok"; m.textContent = msg; $("#bNext").style.display = "";
+}
+document.addEventListener("click", e => {
+  const B = S.board;
+  const p = e.target.closest("[data-bp]"), q = e.target.closest("[data-bport]");
+  if (p && !p.disabled){
+    const right = BOARD[B.order[B.i]][1], r = B.res[B.i] = B.res[B.i] || {};
+    if (p.dataset.bp !== right){ if (r.p === undefined) r.p = false; save(); p.classList.add("wrong"); const m = $("#bMsg"); m.className = "msg bad"; m.textContent = "✗ " + boardWhy(p.dataset.bp, right); return; }
+    if (r.p === undefined) r.p = true;
+    p.classList.add("right");
+    if (B.ports){ B.stage = "port"; save(); boardRender(); const m = $("#bMsg"); m.className = "msg ok"; m.textContent = `✓ ${right}. Now the port.`; return; }
+    r.done = true; save(); boardAfterRight(`✓ ${right}.`);
+    return;
+  }
+  if (q && !q.disabled){
+    const right = BOARD[B.order[B.i]][1], r = B.res[B.i];
+    if (q.dataset.bport !== PORT_OF[right]){ if (r.port === undefined) r.port = false; save(); q.classList.add("wrong"); const m = $("#bMsg"); m.className = "msg bad"; m.textContent = "✗ Not that one. Web: 80 and 443 · files: 21 · sending mail: 25 · collecting mail: 110 and 143."; return; }
+    if (r.port === undefined) r.port = true;
+    r.done = true; save(); q.classList.add("right"); boardAfterRight(`✓ ${right} uses port ${PORT_OF[right]}.`);
+    return;
+  }
+  if (e.target.closest("#bNext")){ B.res[B.i].done = true; B.i++; B.stage = "p"; save(); boardRender(); return; }
+  if (e.target.closest("#bNew")){ newRound(); boardRender(); }
+});
+$("#bPorts").addEventListener("change", e => { S.board.ports = e.target.checked; save(); });
+
+/* ------------------------------------------------------------ wire inputs */
+["sop","protos"].forEach(restoreGroup);
+$$("[data-val]").forEach(el => {
+  const k = el.dataset.val;
+  if (S.val[k] != null) el.value = S.val[k];
+  el.addEventListener("input", () => { S.val[k] = el.value; el.classList?.remove("right","wrong"); save(); });
+  el.addEventListener("change", () => { S.val[k] = el.value; save(); });
+});
+$("#stuName").value = S.name || ""; $("#stuClass").value = S.cls || "";
+$("#stuName").addEventListener("input", e => { S.name = e.target.value; save(); });
+$("#stuClass").addEventListener("input", e => { S.cls = e.target.value; save(); });
+emailRender(); boardRender();
+
+document.addEventListener("click", e => {
+  const c = e.target.closest("[data-check]"), r = e.target.closest("[data-reset]");
+  if (c){ const a = ACTS.find(x => x.id === c.dataset.check); feedback(a.id, a.check()); }
+  if (r){
+    const id = r.dataset.reset;
+    if (["sop","protos"].includes(id)){ const b = bankOf(id); $$(`[data-group="${id}"] .chip`).forEach(ch => { if (!ch.closest(".bank")) { ch.classList.remove("right","wrong"); b.appendChild(ch); } }); recordGroup(id); }
+    const pre = {std:["std"], sop:["prot"], rules:["rule"], postal:["post","tcp"], protos:["port"]}[id] || [];
+    pre.forEach(p => $$(`select[data-val^="${p}-"]`).forEach(s => { s.value=""; s.classList.remove("right","wrong"); delete S.val[s.dataset.val]; }));
+    save(); const fb = $("#fb-"+id); if (fb) fb.textContent = "";
+  }
+});
+
+/* ------------------------------------------------------------- export */
+function reportHtml(){
+  const name = (S.name||"").trim() || "(no name)", cls = (S.cls||"").trim();
+  const st = "font-family:Arial,sans-serif;color:#1A1D21;font-size:11pt;line-height:1.4";
+  const h2 = t => `<h2 style="font-family:Georgia,serif;font-weight:400;color:#0A1B2E;font-size:16pt;margin:14px 0 6px;border-bottom:2px solid #C89B3C;padding-bottom:3px">${t}</h2>`;
+  const score = a => { const r = a.score(); return `<div style="font-size:9pt;color:#555D68;margin-bottom:4px">Auto-marked: <b>${r[0]} / ${r[1]}</b></div>`; };
+  const cell = t => `<td style="border:1px solid #B9C3CF;padding:4px 6px;vertical-align:top">${t}</td>`;
+  const th = t => `<th style="border:1px solid #0A1B2E;background:#0A1B2E;color:#fff;padding:4px 6px;text-align:left;font-size:10pt">${t}</th>`;
+  const OK = '<span style="color:#1F7A4D">✓</span>', NO = '<span style="color:#B3261E">✗</span>';
+  const mark = (got, ans) => !got ? `<span style="color:#B3261E">(blank)</span>` : `${esc(got)} ${got===ans?OK:NO}`;
+  const notesTxt = k => { const v = (S.val[k]||"").trim(); return v ? esc(v).replace(/\n/g,"<br>") : `<span style="color:#B3261E">(not written)</span>`; };
+  const box = (t, k) => `<div style="margin-top:6px"><b>${t}</b><div style="border:1px solid #B9C3CF;padding:6px">${notesTxt(k)}</div></div>`;
+  const paraTxt = (prefix, parts) => { let k=0; return parts.map(p => typeof p==="string" ? esc(p) : `<b><u>${(()=>{const v=S.val[`${prefix}-${k++}`]||""; return v? esc(v)+" "+(v===p[0]?OK:NO) : '<span style="color:#B3261E">____</span>';})()}</u></b>`).join(""); };
+  const A = id => ACTS.find(a=>a.id===id);
+  const blk = (t, inner) => `<div style="page-break-inside:avoid">${h2(t)}${inner}</div>`;
+  let h = `<div style="${st};padding:4mm">`;
+  h += `<div style="background:#0A1B2E;color:#fff;padding:10px 14px;border-radius:6px"><div style="font-size:9pt;letter-spacing:.1em;color:#E3C783;font-weight:bold">YEAR 12 · OCR H446 1.3.3 · LESSON 2 OF 5 · WORKBOOK</div><div style="font-family:Georgia,serif;font-size:20pt">Standards and Protocols</div><div style="font-size:11pt;color:#D7E3EF">${esc(name)}${cls?" · "+esc(cls):""} · exported ${new Date().toLocaleString("en-GB")}</div></div>`;
+  const auto = ACTS.filter(a=>a.score);
+  const tot = auto.reduce((s,a)=>{ const r=a.score(); return [s[0]+r[0], s[1]+r[1]]; },[0,0]);
+  const ps = boardPortScore();
+  h += `<table style="border-collapse:collapse;width:100%;margin-top:8px;font-size:10pt"><tr>${th("Activity")}${th("Auto-marked")}</tr>${auto.map(a=>{const r=a.score(); return `<tr>${cell(a.title + (a.id==="email"||a.id==="board" ? " (first try)" : ""))}${cell(r[0]+" / "+r[1])}</tr>`;}).join("")}<tr>${cell("<b>Total</b>")}${cell(`<b>${tot[0]} / ${tot[1]}</b>`)}</tr>${ps[1] ? `<tr>${cell("COULD: switchboard ports")}${cell(ps[0]+" / "+ps[1])}</tr>` : ""}</table>`;
+  // 1
+  h += blk("1 · Standards: who agrees them?", score(A("std")) + `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("Standard")}${th("Agreed by")}</tr>${STDS.map((s,i)=>`<tr>${cell(esc(s[0]))}${cell(mark(S.val["std-"+i]||"", s[1]))}</tr>`).join("")}</table>` + box("Without standards…","std-without") + box("Interoperability","std-interop"));
+  // 2
+  const inB = b => SOP.filter(it => (S.place.sop||{})["b:"+it.id] === b).map(it => `${esc(it.t)} ${it.b===b?OK:NO}`).join("<br>") || '<span style="color:#B3261E">(empty)</span>';
+  const left = SOP.filter(it => !(S.place.sop||{})["b:"+it.id]).map(it=>esc(it.t)).join(", ");
+  h += blk("2 · Standard or protocol?", score(A("sop")) + `<p>${paraTxt("prot", PROTP)}</p><table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("Protocol")}${th("Standard, not a protocol")}</tr><tr>${cell(inB("p"))}${cell(inB("s"))}</tr></table>` + (left ? `<div style="font-size:9pt;color:#B3261E">Not placed: ${left}</div>` : "") + box("COULD: every protocol is also a standard","sop-could"));
+  // 3
+  h += blk("3 · Protocol breakers", score(A("rules")) + `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("What went wrong")}${th("Rule broken")}</tr>${BREAKS.map((b,i)=>`<tr>${cell(esc(b[0]))}${cell(mark(S.val["rule-"+i]||"", b[1]))}</tr>`).join("")}</table>` + box("A protocol must define…","rules-sum"));
+  // 4
+  h += blk("4 · The postal service model", score(A("postal")) + `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("Sending a letter")}${th("Protocol")}${th("Layer")}</tr>${POSTAL.map((p,i)=>`<tr>${cell(esc(p[0]))}${cell(mark(S.val["post-"+(i*2)]||"", p[1]))}${cell(mark(S.val["post-"+(i*2+1)]||"", p[2]))}</tr>`).join("")}</table><p>${paraTxt("tcp", TCPP)}</p>`);
+  // 5
+  h += blk("5 · Common protocols", score(A("protos")) + `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("Protocol")}${th("Its job")}${th("Port")}</tr>${PROTOS.map(p=>{ const got = PROTOS.find(x=>x.id===(S.place.protos||{})[p.id]); return `<tr>${cell("<b>"+p.name+"</b>")}${cell(got ? `${esc(got.job)} ${got.id===p.id?OK:NO}` : '<span style="color:#B3261E">(blank)</span>')}${cell(p.port ? mark(S.val["port-"+p.id]||"", p.port) : "–")}</tr>`; }).join("")}</table>`);
+  // 6
+  const eRow = sc => { const st = S.email[sc]; return `<tr>${cell("<b>"+sc+"</b> · "+EMAIL[sc].name)}${[0,1,2].map(i=>cell(st.hop>i ? `${EMAIL[sc].ans[i]} ${st.first[i]?OK+" first try":"(after a retry)"}` : '<span style="color:#B3261E">not reached</span>')).join("")}</tr>`; };
+  h += blk("6 · Email journey", score(A("email")) + `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("Scenario")}${th("Hop 1")}${th("Hop 2")}${th("Hop 3")}</tr>${eRow("A")}${eRow("B")}</table>` + box("POP3 or IMAP?","email-why"));
+  // 7
+  const B = S.board;
+  h += blk("7 · Protocol switchboard", score(A("board")) + `<table style="border-collapse:collapse;width:100%;font-size:10pt"><tr>${th("Scenario")}${th("Answer")}${th("First try")}${ps[1]?th("Port"):""}</tr>${B.order.map((ix,k)=>{ const r = B.res[k]; const [t,a] = BOARD[ix]; return `<tr>${cell(esc(t))}${cell(a)}${cell(!r||r.p===undefined ? '<span style="color:#B3261E">not done</span>' : r.p ? OK : NO)}${ps[1]?cell(!r||r.port===undefined||r.port===null ? "–" : r.port ? OK+" "+PORT_OF[a] : NO):""}</tr>`; }).join("")}</table>`);
+  // 8
+  h += blk("8 · Homework", box("HTTPS in the postal model","hw-https") + box("UDP in the postal model","hw-udp") + box("Exam question [4]","hw-exam"));
+  return h + `</div>`;
+}
+function fileName(){ const n = (S.name||"student").trim().replace(/[^\w\- ]+/g,"").replace(/\s+/g,"-") || "student"; return `Networks-L2-Workbook-${n}.pdf`; }
+$("#exportBtn").addEventListener("click", async () => {
+  if (!(S.name||"").trim()){ alertBox("Add your name at the top first, so your teacher knows whose workbook this is."); $("#stuName").focus(); return; }
+  const btn = $("#exportBtn"); btn.disabled = true; btn.textContent = "Making your PDF…";
+  const host = document.createElement("div"); host.style.cssText = "position:fixed;left:-10000px;top:0;width:190mm;background:#fff"; host.innerHTML = reportHtml(); document.body.appendChild(host);
+  try {
+    if (!window.html2pdf) throw new Error("no html2pdf");
+    await html2pdf().set({margin:[8,8,10,8], filename:fileName(), image:{type:"jpeg",quality:.95}, html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}, pagebreak:{mode:["css","avoid-all"]}}).from(host.firstElementChild).save();
+  } catch(err){ printReport(); }
+  host.remove(); btn.disabled = false; btn.textContent = "⬇ Export to PDF";
+});
+function printReport(){
+  const w = window.open("", "_blank");
+  if (!w){ alertBox("Your browser blocked the print window. Allow pop-ups for this page, or use Ctrl+P."); return; }
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${fileName().replace(/\.pdf$/,"")}</title><style>@page{size:A4;margin:10mm}body{margin:0}</style></head><body>${reportHtml()}<script>setTimeout(()=>print(),300)<\/script></body></html>`);
+  w.document.close();
+}
+$("#printBtn").addEventListener("click", printReport);
+$("#wipeBtn").addEventListener("click", () => { if (confirm("Clear every answer in this workbook? This cannot be undone.")) { try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); } });
+function alertBox(msg){ const p = $("#saveStatus"); p.textContent = msg; p.style.color = "#E3C783"; }
+
+/* ------------------------------------------------------------- embed mode */
+const params = new URLSearchParams(location.search);
+const emb = params.get("embed");
+if (emb && document.getElementById(emb)){ document.body.classList.add("embed"); document.getElementById(emb).classList.add("shown"); }
+</script>
+</body>
+</html>
