@@ -125,6 +125,12 @@ body.embed .howto,body.embed .defn{display:none}
 body.embed .bank{padding:8px;margin-bottom:8px;gap:6px}
 body.embed section.act>header{margin-bottom:6px}
 body.embed .bar{margin-top:6px}
+/* links to the ON THE COMPUTER tools */
+.tool{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;background:var(--navy9);color:#fff;border-radius:10px;padding:12px 14px;margin:0 0 14px}
+.tool .tt{flex:1;min-width:220px;font-size:15px;color:var(--navy1)}
+.tool .tt b{display:block;color:var(--gold3);font-size:13px;letter-spacing:.08em}
+.tool a{background:var(--gold5);color:var(--navy9);font-weight:700;padding:8px 14px;border-radius:8px;text-decoration:none;white-space:nowrap}
+body.embed .tool{display:none}
 </style>
 </head>
 <body>
@@ -444,6 +450,7 @@ ACTS.push({id:"switch", title:"Be the switch", check:()=>checkSelects("sw"), sco
 section("routers", 6, "Routers: one hop at a time", ["✎ MAKE A NOTE"],
   "A packet travels PC → Router 1 → Router 2 → Router 3 → Server. Inside every hop’s <b>frame</b> is the same <b>packet</b>.",
   `<div class="defn"><div class="tag">📖 KEYWORDS · FRAME · PACKET</div><p>A ${kw("packet")} is a unit of data carrying the source and destination <b>IP addresses</b>. A ${kw("frame")} wraps the packet for one hop across a single network, using <b>MAC addresses</b>.</p></div>`
+  + `<div class="tool"><div class="tt"><b>⌨ ON THE COMPUTER · HOP-BY-HOP TRACER</b>Step the packet across the three routers yourself: type each new frame’s MAC addresses and watch the IP header stay the same. Then fill in the rule below.</div><a href="hop-tracer/" target="_blank" rel="noopener">Open the hop tracer ↗</a></div>`
   + para("rule", RULEP) + bar("rule")
   + `<div class="notes" style="margin-top:14px">` + note("rt-1","What each router does · 1","What does it read?") + note("rt-2","What each router does · 2","What does it look it up in, and why?") + note("rt-3","What each router does · 3","What does it put the packet in before sending it on?") + `</div>`);
 ACTS.push({id:"rule", title:"Routers: the rule", check:()=>checkSelects("rule"), score:()=>scoreSelects("rule"), notes:[["rt-1","Router step 1"],["rt-2","Router step 2"],["rt-3","Router step 3"]]});
@@ -454,7 +461,8 @@ section("addr", 7, "MAC addresses and IP addresses", ["✎ MAKE A NOTE","FILL TH
   `<div class="defn"><div class="tag">📖 KEYWORD · MAC ADDRESS</div><p>A ${kw("MAC address")} is the unique physical address of a network interface card.</p></div>`
   + para("mac", MACP)
   + `<div class="defn"><div class="tag">📖 KEYWORD · IP ADDRESS</div><p>An ${kw("IP address")} is a logical address that identifies a device’s location on a network.</p></div>`
-  + para("ip", IPP) + bar("addr"));
+  + para("ip", IPP) + bar("addr")
+  + `<div class="tool" style="margin-top:14px"><div class="tt"><b>⌨ ON THE COMPUTER · ADDRESS DETECTIVE</b>In Command Prompt type <code>ipconfig /all | clip</code>, then paste it into the detective. It labels your own MAC, IPv4, IPv6 and gateway and shows them in binary. No Command Prompt? Press Use a sample.</div><a href="address-detective/" target="_blank" rel="noopener">Open the address detective ↗</a></div>`);
 ACTS.push({id:"addr", title:"MAC and IP addresses", check:()=>{ const a=checkSelects("mac"), b=checkSelects("ip"); return [a[0]+b[0], a[1]+b[1]]; }, score:()=>{ const a=scoreSelects("mac"), b=scoreSelects("ip"); return [a[0]+b[0], a[1]+b[1]]; }});
 
 // 8 MAC vs IP
