@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Networks Practice and Essay Builder · OCR H446 1.3.3</title>
+<style>
+:root{
+  --navy9:#0A1B2E;--navy7:#163351;--navy5:#2A5A8C;--navy1:#D7E3EF;
+  --gold5:#C89B3C;--gold3:#E3C783;--gold7:#8A6520;
+  --paper:#F7F8FA;--ink:#1A1D21;--muted:#555D68;--line:#E3E8EF;--frame:#B9C3CF;
+  --ok:#1F7A4D;--okbg:#E6F4EC;--bad:#B3261E;--badbg:#FCE9E7;--warn:#8A5A00;--warnbg:#FDF1D9;
+  --ao1:#2A5A8C;--ao1bg:#E8F0F8;--ao2:#1F7A4D;--ao2bg:#E6F4EC;--ao3:#8A5A00;--ao3bg:#FDF1D9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:Georgia,serif;color:var(--navy9);font-weight:400;margin:0}
+a{color:var(--navy5)}
+code{font:14px ui-monospace,Consolas,monospace;background:var(--line);padding:1px 5px;border-radius:4px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 80px}
+header.top{background:var(--navy9);color:#fff;padding:22px 0 24px;margin-bottom:22px}
+header.top .wrap{padding-bottom:0}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--gold3);text-transform:uppercase}
+header.top h1{color:#fff;font-size:clamp(30px,5vw,44px);margin:6px 0 10px}
+header.top p{color:var(--navy1);margin:0;max-width:780px}
+.idrow{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.idrow label{display:flex;flex-direction:column;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold3)}
+.idrow input{margin-top:4px;padding:8px 10px;border-radius:8px;border:1px solid var(--navy5);background:var(--navy7);color:#fff;font:inherit;min-width:220px}
+.clock{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--navy1);margin-top:14px;background:var(--navy7);border:1px solid var(--navy5);border-radius:999px;padding:4px 12px}
+.clock b{color:var(--gold3)}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.jump a{color:var(--navy9);background:var(--gold5);font-weight:700;font-size:14px;border-radius:999px;padding:6px 14px;text-decoration:none}
+.jump a.alt{background:transparent;color:var(--gold3);border:1px solid var(--gold3)}
+.partstrip{display:flex;gap:14px;align-items:center;background:var(--navy9);color:#fff;border-radius:14px;padding:12px 18px;margin:8px 0 14px}
+.partstrip>span{font-family:Georgia,serif;font-size:34px;color:var(--gold3);line-height:1}
+.partstrip b{display:block;font-family:Georgia,serif;font-weight:400;font-size:24px}
+.partstrip small{color:var(--navy1);font-size:13px;letter-spacing:.04em}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.tabs button{font:inherit;font-weight:700;font-size:14px;border-radius:999px;padding:6px 14px;border:1.5px solid var(--navy5);background:#fff;color:var(--navy9);cursor:pointer}
+.tabs button.on{background:var(--navy9);color:var(--gold3);border-color:var(--navy9)}
+.tabs button small{font-weight:600;opacity:.8;margin-left:4px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px}
+.card>header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:10px}
+.card>header h2{font-size:24px;margin-right:4px}
+.num{display:inline-block;min-width:34px;height:30px;border-radius:15px;background:var(--gold5);color:var(--navy9);text-align:center;line-height:30px;font-weight:700;font-size:15px;padding:0 6px}
+.pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.05em;padding:4px 10px;border-radius:999px;background:var(--navy1);color:var(--navy9)}
+.pill.marks{background:var(--navy9);color:var(--gold3)}
+.tbadge{margin-left:auto;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--line);color:var(--muted);white-space:nowrap}
+.tbadge.done{background:var(--okbg);color:var(--ok)}
+.ctx{margin:0 0 10px;font-size:16.5px}
+.qbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.qbody.nodia{grid-template-columns:1fr}
+.dia{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px;align-self:start}
+.dia svg{display:block;width:100%;height:auto}
+.part{margin-bottom:14px}
+.part .pq{margin:0 0 6px;font-size:16px}
+.part .pq .pl{font-weight:700;color:var(--navy7);margin-right:6px}
+.part .pq .pm{font-weight:700;color:var(--navy7);white-space:nowrap}
+.line{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;margin-bottom:6px}
+.line>span{font-weight:700;color:var(--navy7);font-size:14px;padding-top:9px;min-width:22px}
+.line.wide{grid-template-columns:1fr}
+.line.wide>span{padding-top:0;font-weight:600;color:var(--ink);font-size:15px}
+textarea,input.ans{width:100%;font:inherit;font-size:16px;border:1px solid var(--frame);border-radius:8px;padding:8px 10px;background:#FBFCFD;color:var(--ink);resize:vertical}
+textarea:focus,input:focus,select:focus{outline:3px solid var(--gold3);outline-offset:1px}
+.meta{font-size:12px;color:var(--muted);margin-top:2px;text-align:right}
+.ms{display:none;border-left:5px solid var(--gold5);background:var(--warnbg);border-radius:8px;padding:8px 12px;margin-top:6px;font-size:14px}
+.ms b{color:var(--warn);font-size:12px;letter-spacing:.08em}
+.ms ul{margin:4px 0 0;padding-left:18px}
+.ms .g{color:var(--muted);font-style:italic;list-style:none;margin-left:-18px}
+body.teacher .ms{display:block}
+/* mail */
+.mail{background:#fff;border:1px solid var(--frame);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.6}
+.mail .hd{border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:8px;font-size:13.5px}
+.mail .lnk{color:#1a56c4;text-decoration:underline}
+.mail .tip{font:12px ui-monospace,Consolas,monospace;color:var(--muted)}
+pre.cmd{background:var(--navy9);color:#E8EDF3;border-radius:10px;padding:10px 12px;font:13px/1.5 ui-monospace,Consolas,monospace;overflow-x:auto;margin:0;white-space:pre}
+/* essay */
+.pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px}
+.pick button{font:inherit;text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.pick button b{display:block;font-family:Georgia,serif;font-weight:400;font-size:20px;color:var(--navy9)}
+.pick button small{color:var(--muted)}
+.pick button.on{border-color:var(--gold5);box-shadow:0 0 0 3px var(--gold3)}
+.pick button .st{display:block;font-size:12px;font-weight:700;color:var(--ok);margin-top:4px}
+.eq{border-left:6px solid var(--navy9);background:var(--paper);border-radius:8px;padding:10px 14px;margin:10px 0}
+.eq p{margin:0 0 6px}
+.eq .cmdw{background:var(--navy9);color:var(--gold3);padding:1px 6px;border-radius:4px;font-weight:700}
+.eq ul{margin:4px 0 0}
+.aobar{display:flex;border-radius:10px;overflow:hidden;margin:10px 0 4px;font-size:13px;font-weight:700}
+.aobar div{padding:8px 10px;color:#fff;min-width:0}
+.aobar .a1{background:var(--ao1)}.aobar .a2{background:var(--ao2)}.aobar .a3{background:var(--ao3)}
+.aobar small{display:block;font-weight:500;opacity:.9}
+.howto{color:var(--muted);font-size:15px;margin:6px 0 12px}
+.chain{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;background:var(--paper)}
+.chainh{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
+.chainh h3{font-family:system-ui,sans-serif;font-size:14px;font-weight:700;letter-spacing:.08em;color:var(--navy7);text-transform:uppercase}
+.chainh select{font:inherit;font-weight:600;padding:5px 8px;border-radius:8px;border:2px solid var(--navy5);background:#fff;max-width:100%}
+.chainh .rm{margin-left:auto;border:1px solid var(--frame);background:#fff;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:13px;color:var(--muted)}
+.aocols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.aobox{border-radius:10px;padding:8px;border:1.5px solid}
+.aobox.ao1{border-color:var(--ao1);background:var(--ao1bg)}
+.aobox.ao2{border-color:var(--ao2);background:var(--ao2bg)}
+.aobox.ao3{border-color:var(--ao3);background:var(--ao3bg)}
+.aobox h4{margin:0 0 2px;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.aobox.ao1 h4{color:var(--ao1)}.aobox.ao2 h4{color:var(--ao2)}.aobox.ao3 h4{color:var(--ao3)}
+.aobox .q{font-size:13px;color:var(--muted);margin:0 0 6px}
+.aobox textarea{background:#fff;min-height:120px;font-size:15px}
+.starters{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.starters button{font:12.5px system-ui,sans-serif;border:1px dashed var(--frame);background:#fff;border-radius:6px;padding:2px 6px;cursor:pointer;color:var(--navy7)}
+.ticks{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;font-size:12.5px;font-weight:700}
+.ticks span{padding:2px 8px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--muted)}
+.ticks span.y{background:var(--okbg);border-color:var(--okbg);color:var(--ok)}
+.check{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff;margin:12px 0}
+.check h3{font-family:system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:6px}
+.check ul{list-style:none;margin:0;padding:0}
+.check li{padding:3px 0 3px 26px;position:relative;font-size:15px}
+.check li::before{content:"☐";position:absolute;left:2px;color:var(--muted)}
+.check li.y{color:var(--ok);font-weight:600}
+.check li.y::before{content:"☑";color:var(--ok)}
+.check .note{font-size:13px;color:var(--muted);margin:6px 0 0}
+.sub{font-family:system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin:16px 0 6px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+button.btn{font:inherit;font-weight:700;border-radius:8px;padding:8px 16px;cursor:pointer;border:1px solid var(--navy9);background:var(--navy9);color:#fff}
+button.btn.ghostb{background:#fff;color:var(--navy9)}
+button.btn.gold{background:var(--gold5);border-color:var(--gold5);color:var(--navy9)}
+button.btn:disabled{opacity:.5;cursor:default}
+.msg{font-size:14px;font-weight:700;color:var(--warn)}
+#finalEssay{min-height:320px;font-family:Georgia,serif;font-size:17px;line-height:1.6}
+.finish{background:var(--navy9);color:#fff;border-radius:14px;padding:22px;margin-top:24px}
+.finish h2{color:#fff}
+.finish p{color:var(--navy1)}
+.status{font-size:13px;color:var(--navy1)}
+.tpanel{display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.tpanel.open{display:flex}
+.tpanel input{padding:7px 10px;border-radius:8px;border:1px solid var(--gold3);background:var(--navy7);color:#fff;font:700 15px ui-monospace,Consolas,monospace;letter-spacing:.1em;text-transform:uppercase;width:190px}
+.tlink{background:none;border:0;color:var(--navy1);text-decoration:underline;cursor:pointer;font:inherit;font-size:13px;padding:0}
+.teachbar{display:none;background:var(--gold5);color:var(--navy9);font-weight:700;padding:8px 16px;text-align:center}
+body.teacher .teachbar{display:block}
+.ems{display:none;border:1px solid var(--gold5);background:var(--warnbg);border-radius:12px;padding:12px 14px;margin:12px 0;font-size:14px}
+body.teacher .ems{display:block}
+.ems h4{margin:8px 0 2px;font-size:13px;letter-spacing:.06em}
+.ems ul{margin:2px 0;padding-left:18px}
+.ems table{border-collapse:collapse;width:100%;margin-top:6px}
+.ems td{border-top:1px solid var(--gold3);padding:4px 6px;vertical-align:top}
+.hide{display:none!important}
+@media (max-width:820px){
+  .qbody,.qbody.nodia{grid-template-columns:minmax(0,1fr)}
+  .aocols{grid-template-columns:1fr}
+  .card{padding:14px 12px}
+  .aobar{flex-direction:column}
+}
+@media print{.starters,.bar,.tabs,.pick{display:none}}
+</style>
+</head>
+<body>
+<div class="teachbar">Teacher view: mark schemes are showing. <button class="btn ghostb" id="msPrint" style="padding:4px 10px;margin-left:8px">Print mark scheme</button> <button class="btn ghostb" id="msHide" style="padding:4px 10px">Hide</button></div>
+<header class="top"><div class="wrap">
+  <div class="kicker">Year 12 · OCR H446 1.3.3 · Networks · Practice</div>
+  <h1>Exam Practice and Essay Builder</h1>
+  <p><b>Part A</b>: short exam questions on the four networks lessons. <b>Part B</b>: build a 9-mark “Discuss” answer one assessment objective at a time. Write in the boxes; your work saves on this device. When you have finished, <b>Export to PDF</b> and hand it in on Teams. The time you spend writing each answer is recorded on your PDF.</p>
+  <div class="idrow">
+    <label>YOUR NAME<input id="stuName" autocomplete="name" placeholder="First and last name"></label>
+    <label>CLASS<input id="stuClass" placeholder="e.g. 12X/Cs1"></label>
+  </div>
+  <div class="clock">⏱ Writing time so far: <b id="totTime">0m 00s</b></div>
+  <div class="jump"><a href="#partA">Part A · Short questions</a><a href="#partB" class="alt">Part B · Essay builder</a><a href="#finish" class="alt">⬇ Export</a></div>
+</div></header>
+
+<main class="wrap" id="main">
+  <div class="partstrip" id="partA"><span>A</span><div><b>Short questions</b><small>Choose a topic, or work through them all. The marks in [brackets] tell you how many points to make.</small></div></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="qs"></div>
+
+  <div class="partstrip" id="partB"><span>B</span><div><b>Essay builder · 9 marks</b><small>Pick a scenario. Plan each paragraph as AO1 → AO2 → AO3, write a conclusion, then build and polish your essay.</small></div></div>
+  <div class="pick" id="pick"></div>
+  <div id="essay"></div>
+
+  <section class="finish" id="finish">
+    <h2>Finished? Export your work</h2>
+    <p>Check your name is at the top. <b>Export to PDF</b> downloads a file with every answer, your essay plan and essay, and the time spent on each answer. Attach it to the Teams assignment.</p>
+    <div class="bar"><button class="btn gold" id="exportBtn">⬇ Export to PDF</button><button class="btn ghostb" id="printBtn" style="background:transparent;color:#fff;border-color:#fff">Print instead</button><button class="btn ghostb" id="wipeBtn" style="background:transparent;color:#E3C783;border-color:#E3C783">Clear everything</button></div>
+    <p class="status" id="saveStatus">Your answers save on this device as you work. Only time spent actively writing is counted: pauses longer than 90 seconds are not.</p>
+    <p style="margin:14px 0 0"><button class="tlink" id="tOpen">Teacher</button></p>
+    <div class="tpanel" id="tPanel"><input id="tCode" type="password" placeholder="CODE" autocomplete="off" aria-label="Teacher code"><button class="btn gold" id="tGo" style="padding:6px 12px">Show mark schemes</button><span class="msg" id="tMsg" style="color:#E3C783"></span></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.14.0/dist/html2pdf.bundle.min.js" integrity="sha384-EaWTV/aVUkLz3tfwg3+5ycX7Q/d9ET9ruOKUgUuFIRUCfzHO1eo2J62a844iWPmY" crossorigin="anonymous"></script>
+<script>
+"use strict";
+const DATA = {"topics": [["fund", "Fundamentals", "Lesson 1"], ["prot", "Standards and protocols", "Lesson 2"], ["inet", "TCP/IP, DNS and switching", "Lesson 3"], ["sec", "Security and threats", "Lesson 4"]], "questions": [{"id": "f1", "topic": "fund", "title": "Riverside Vets", "ctx": "Riverside Vets has 12 staff computers, a shared printer and an Internet connection. The diagram shows part of its network.", "dia": "office", "parts": [{"id": "a", "q": "Identify the devices labelled <b>A</b>, <b>B</b> and <b>C</b>.", "marks": 3, "kind": "lines", "labels": ["A", "B", "C"]}, {"id": "b", "q": "Explain the purpose of device <b>B</b>.", "marks": 2}, {"id": "c", "q": "Each computer contains a network interface card (NIC). State <b>two</b> purposes of a NIC.", "marks": 2, "kind": "lines", "labels": ["1", "2"]}, {"id": "d", "q": "State <b>two</b> benefits to Riverside Vets of connecting its computers in a network.", "marks": 2, "kind": "lines", "labels": ["1", "2"]}]}, {"id": "f2", "topic": "fund", "title": "LANs and WANs", "ctx": "", "dia": null, "parts": [{"id": "a", "q": "Describe <b>one</b> difference between a local area network (LAN) and a wide area network (WAN).", "marks": 2}, {"id": "b", "q": "The Internet is an example of a WAN. Explain why.", "marks": 1}]}, {"id": "f3", "topic": "fund", "title": "Hub or switch?", "ctx": "A small office connects six computers using a hub. The office manager replaces the hub with a switch.", "dia": "hubswitch", "parts": [{"id": "a", "q": "Explain why replacing the hub with a switch can improve the performance of the network.", "marks": 3}]}, {"id": "f4", "topic": "fund", "title": "Addresses", "ctx": "A student runs <code>ipconfig /all</code> on a school computer. Part of the output is shown.", "dia": "ipconfig", "parts": [{"id": "a", "q": "Describe <b>two</b> differences between a MAC address and an IP address.", "marks": 4, "kind": "lines", "labels": ["1", "2"], "rows": 3}, {"id": "b", "q": "Using the output, identify the computer’s MAC address and the IP address of its router.", "marks": 2, "kind": "lines", "labels": ["MAC address", "Router’s IP address"]}]}, {"id": "f5", "topic": "fund", "title": "Transmission media", "ctx": "", "dia": null, "parts": [{"id": "a", "q": "State <b>one</b> advantage and <b>one</b> disadvantage of using fibre optic cable rather than copper cable.", "marks": 2, "kind": "lines", "labels": ["Advantage", "Disadvantage"]}, {"id": "b", "q": "Explain <b>one</b> reason why a school might use wireless connections rather than cables in its classrooms.", "marks": 2}]}, {"id": "p1", "topic": "prot", "title": "Protocols and standards", "ctx": "", "dia": null, "parts": [{"id": "a", "q": "What is meant by a <b>protocol</b>?", "marks": 2}, {"id": "b", "q": "Explain why <b>standards</b> are important in networking.", "marks": 2}]}, {"id": "p2", "topic": "prot", "title": "Sending an email", "ctx": "Priya sends an email from her laptop to Tom. Tom reads his email on both his phone and his laptop.", "dia": "email", "parts": [{"id": "a", "q": "Identify the protocol used at arrow <b>1</b> and at arrow <b>3</b>.", "marks": 2, "kind": "lines", "labels": ["Arrow 1", "Arrow 3"]}, {"id": "b", "q": "Explain why Tom should use IMAP rather than POP3.", "marks": 2}]}, {"id": "p3", "topic": "prot", "title": "Which protocol?", "ctx": "", "dia": null, "parts": [{"id": "a", "q": "Identify the protocol used for each task.", "marks": 5, "kind": "lines", "labels": ["Loading a web page from a server that does not encrypt data", "Logging in to online banking securely", "Uploading website files to a web server", "Splitting data into numbered packets and checking they all arrive", "Addressing packets so they can be routed between networks"]}]}, {"id": "i1", "topic": "inet", "title": "The TCP/IP stack", "ctx": "The diagram shows the four layers of the TCP/IP stack.", "dia": "stack", "parts": [{"id": "a", "q": "Name layers <b>1</b> to <b>4</b>.", "marks": 2, "kind": "lines", "labels": ["1", "2", "3", "4"]}, {"id": "b", "q": "Describe the role of the <b>transport</b> layer.", "marks": 2}, {"id": "c", "q": "Explain <b>two</b> benefits of organising network protocols into layers.", "marks": 4, "kind": "lines", "labels": ["1", "2"], "rows": 3}]}, {"id": "i2", "topic": "inet", "title": "Down the stack", "ctx": "A web server sends a web page to a student’s browser.", "dia": null, "parts": [{"id": "a", "q": "Describe how the data is prepared for transmission as it passes down the TCP/IP stack on the <b>server</b>.", "marks": 4}]}, {"id": "i3", "topic": "inet", "title": "Finding the server", "ctx": "Jamal types <code>www.elthamrobotics.co.uk</code> into his browser. His computer does not know the IP address of the web server.", "dia": "dns", "parts": [{"id": "a", "q": "Explain how the Domain Name System (DNS) is used to find the IP address and load the website.", "marks": 5}, {"id": "b", "q": "Explain why DNS servers cache the results of their look-ups.", "marks": 2}]}, {"id": "i4", "topic": "inet", "title": "Packets on the move", "ctx": "A message is split into three packets and sent across a packet-switched network. The diagram shows the route each packet took.", "dia": "packets", "parts": [{"id": "a", "q": "Describe <b>one</b> difference between packet switching and circuit switching.", "marks": 2}, {"id": "b", "q": "The packets arrive in the order 2, 1, 3. Explain how the receiving computer rebuilds the message.", "marks": 2}, {"id": "c", "q": "Explain <b>two</b> advantages of packet switching compared with circuit switching.", "marks": 4, "kind": "lines", "labels": ["1", "2"], "rows": 3}, {"id": "d", "q": "Give <b>one</b> use for which circuit switching may be more suitable. Justify your answer.", "marks": 2}]}, {"id": "s1", "topic": "sec", "title": "Suspicious email", "ctx": "A teacher receives this email.", "dia": "phish", "parts": [{"id": "a", "q": "Identify <b>two</b> features of this email that suggest it is a phishing attack.", "marks": 2, "kind": "lines", "labels": ["1", "2"]}, {"id": "b", "q": "Explain the difference between phishing and pharming.", "marks": 2}]}, {"id": "s2", "topic": "sec", "title": "The login form", "ctx": "An attacker types the text shown into a website’s login form.", "dia": "sqli", "parts": [{"id": "a", "q": "Explain how this input could let the attacker log in without knowing the password.", "marks": 3}, {"id": "b", "q": "State <b>two</b> methods the website’s developer could use to prevent this attack.", "marks": 2, "kind": "lines", "labels": ["1", "2"]}]}, {"id": "s3", "topic": "sec", "title": "Saturday morning", "ctx": "GreenGrocer sells food online. On a Saturday morning its website stops responding. Investigators find it received millions of requests a second from thousands of computers around the world.", "dia": "ddos", "parts": [{"id": "a", "q": "Identify the type of attack.", "marks": 1, "kind": "lines", "labels": ["Attack"]}, {"id": "b", "q": "Explain how the attack stopped customers using the website.", "marks": 2}, {"id": "c", "q": "Explain why the attack cannot be stopped by blocking a single IP address.", "marks": 2}]}, {"id": "s4", "topic": "sec", "title": "Defences", "ctx": "", "dia": "firewall", "parts": [{"id": "a", "q": "Describe what is meant by a <b>firewall</b>.", "marks": 2}, {"id": "b", "q": "A student says: “Our firewall will remove any viruses on the school’s computers.” Explain why the student is wrong.", "marks": 2}, {"id": "c", "q": "Explain how a proxy server can improve the security of a school network.", "marks": 2}, {"id": "d", "q": "Data sent over public Wi-Fi can be intercepted. Explain how encryption protects this data.", "marks": 2}]}, {"id": "s5", "topic": "sec", "title": "Malware and passwords", "ctx": "", "dia": null, "parts": [{"id": "a", "q": "Describe <b>one</b> difference between a virus and spyware.", "marks": 2}, {"id": "b", "q": "Staff at a company use passwords such as <code>arsenal1</code>. Explain <b>two</b> ways the company could make it harder for a hacker to gain unauthorised access to staff accounts.", "marks": 4, "kind": "lines", "labels": ["1", "2"], "rows": 3}]}], "essays": [{"id": "e1", "topic": "sec", "title": "StageDoor Tickets", "dia": "e_stage", "scenario": "StageDoor Tickets runs a website where customers buy theatre tickets. Customers create accounts and pay by card. Box-office staff log in to the same system from the theatre. When tickets for a popular show are released, thousands of customers try to buy at the same time.", "q": "Discuss the threats to StageDoor’s systems and the measures it could use to protect its staff, customers and data.", "bullets": ["the threats that could affect StageDoor and their impact", "the measures that could reduce each threat", "how effective each measure would be in this scenario."], "factors": ["Phishing", "Pharming", "SQL injection", "Denial of service (DDoS)", "Hacking / brute-force", "Malware (virus, spyware)", "Data intercepted in transit"], "tech": ["phishing", "pharming", "sql injection", "sql", "denial of service", "ddos", "botnet", "malware", "virus", "spyware", "keylogger", "firewall", "proxy", "encryption", "encrypt", "https", "anti-virus", "antivirus", "anti-spyware", "parameterised", "parameterized", "validation", "sanitis", "password", "two-factor", "2fa", "brute", "dictionary", "unauthorised", "certificate", "dns", "load balanc", "patch"], "ctx": ["stagedoor", "ticket", "customer", "card", "payment", "box office", "box-office", "staff", "theatre", "show", "release", "booking", "account"]}, {"id": "e2", "topic": "fund", "title": "Hillside Academy", "dia": "e_hill", "scenario": "Hillside Academy is opening a new sixth-form building 500 m from its main building. The new building has two computer rooms with 30 desktop computers each, a study area where 80 students use their own laptops and phones, and two printers. Every device must reach the school’s file server in the main building and the Internet.", "q": "Discuss the networking hardware and transmission media Hillside Academy should use in the new building.", "bullets": ["the hardware needed and its purpose", "the transmission media for the link between the buildings and for the devices inside the new building", "a justified recommendation."], "factors": ["Switches", "Wireless access points", "Router", "Network interface cards", "Copper (Ethernet) cable", "Fibre optic cable", "Wireless (Wi-Fi)", "Hub vs switch"], "tech": ["switch", "router", "wireless access point", "access point", "wap", "nic", "network interface", "mac address", "ip address", "ethernet", "copper", "twisted pair", "fibre", "fiber", "bandwidth", "interference", "attenuat", "wireless", "wi-fi", "wifi", "hub", "lan", "wan", "frame", "packet", "repeater", "collision", "radio"], "ctx": ["hillside", "sixth-form", "sixth form", "building", "500", "computer room", "study area", "laptop", "phone", "printer", "file server", "student", "desktop", "academy"]}, {"id": "e3", "topic": "inet", "title": "TalkTime", "dia": "e_talk", "scenario": "TalkTime is launching an app that lets users make live video calls and send large files to each other over the Internet. Some of TalkTime’s engineers argue that a dedicated connection should be set up for each call, as in the old telephone network.", "q": "Discuss whether packet switching or circuit switching is more suitable for TalkTime’s services.", "bullets": ["how packet switching and circuit switching work", "the impact of each on live video calls and on file transfers", "a justified conclusion."], "factors": ["How packet switching works", "How circuit switching works", "Live video calls", "Large file transfers", "Reliability and rerouting", "Use of bandwidth and cost", "Security"], "tech": ["packet", "circuit", "route", "router", "header", "sequence number", "reassembl", "dedicated", "bandwidth", "latency", "delay", "jitter", "order", "retransmi", "resen", "tcp", "udp", "congest", "ip address", "buffer", "intercept"], "ctx": ["talktime", "video call", "call", "file", "app", "user", "live", "engineer", "telephone", "video"]}, {"id": "e4", "topic": "prot", "title": "BrightHome", "dia": "e_bright", "scenario": "BrightHome makes smart lights and thermostats that customers control from a phone app. BrightHome is deciding whether its devices should communicate using standard, openly published protocols (such as TCP/IP and HTTPS over Wi-Fi) or a proprietary protocol that only BrightHome devices understand.", "q": "Discuss which approach BrightHome should take.", "bullets": ["what protocols and standards are, and the difference between standardised and proprietary protocols", "the effect of each approach on customers, other manufacturers and BrightHome", "a justified recommendation."], "factors": ["Interoperability", "Customer choice and lock-in", "Development cost and time", "Security", "Control and licensing", "Future updates"], "tech": ["protocol", "standard", "proprietary", "open", "interoperab", "compatib", "tcp/ip", "tcp", "https", "encrypt", "layer", "ieee", "w3c", "ietf", "iso", "licen", "de facto", "de jure", "handshake", "rules", "wi-fi", "wifi"], "ctx": ["brighthome", "smart", "light", "thermostat", "phone", "app", "customer", "device", "manufacturer", "home"]}], "starters": {"ao1": ["This is when …", "It works by …", "A key feature is …"], "ao2": ["For [org], this means …", "Because [org] needs …", "For example, when …"], "ao3": ["However, …", "This is very effective because …", "This is less effective because …", "On the other hand, …", "The most important"], "concl": ["Overall, I recommend …", "Although …", "The best approach for [org] is"]}, "essayAO": [["AO1.1", 2, "Knowledge"], ["AO1.2", 2, "Understanding"], ["AO2.1", 2, "Apply to the scenario"], ["AO3.3", 3, "Evaluate and conclude"]], "levels": [["7–9", "Thorough knowledge and understanding; accurate and detailed. Applied directly and consistently to the context, with explicitly relevant examples. Thorough, well-balanced discussion; evaluative comments consistently relevant and well considered. Well-developed, logically structured line of reasoning; substantiated conclusion."], ["4–6", "Reasonable knowledge and understanding; generally accurate but at times underdeveloped. Applied to the context although one or two opportunities are missed. Sound discussion, mostly focused; evaluation mostly appropriate. A line of reasoning with some structure."], ["1–3", "Basic knowledge with some inaccuracies. Limited attempt to apply to the context. Limited, narrow discussion; judgements weak or unsubstantiated. Information basic and unstructured."], ["0", "No attempt, or nothing worthy of credit."]]};
+const MSBLOB = {"salt": "Oa7RN41agFH9KgT20kmPJA==", "iv": "VICzPf03muGu3cNd", "ct": "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", "iter": 150000};
+const KEY = "h446-networks-practice-v1";
+const IDLE = 90000;
+
+/* ------------------------------------------------------------------ helpers */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const words = t => (String(t||"").trim().match(/\S+/g) || []).length;
+const fmt = ms => { const s = Math.round((ms||0)/1000), m = Math.floor(s/60), h = Math.floor(m/60); return h ? `${h}h ${String(m%60).padStart(2,"0")}m` : `${m}m ${String(s%60).padStart(2,"0")}s`; };
+
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) { S = {}; }
+S.val = S.val || {}; S.t = S.t || {}; S.chains = S.chains || {};
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }, 200); }
+
+/* ------------------------------------------------------------------ diagrams */
+const DG = {navy9:"#0A1B2E", navy7:"#163351", navy5:"#2A5A8C", navy1:"#D7E3EF", gold5:"#C89B3C", gold3:"#E3C783", gold7:"#8A6520",
+  paper:"#F7F8FA", ink:"#1A1D21", muted:"#555D68", line:"#E3E8EF", frame:"#B9C3CF", ok:"#1F7A4D", okbg:"#E6F4EC", bad:"#B3261E", badbg:"#FCE9E7", warnbg:"#FDF1D9", link:"#5B7FA6"};
+const T = (x, y, t, o={}) => `<text x="${x}" y="${y}" font-size="${o.s||13}" font-weight="${o.w||400}" fill="${o.c||DG.ink}" text-anchor="${o.a||"middle"}"${o.f?` font-family="${o.f}"`:""}>${t}</text>`;
+const ARW = (id, col) => `<marker id="${id}" viewBox="0 0 12 10" refX="11" refY="5" markerWidth="11" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L12 5L0 10z" fill="${col}"/></marker>`;
+const open = (p, w, h, label) => `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" font-family="system-ui,sans-serif" role="img" aria-label="${label}"><defs>${ARW(p+"N", DG.navy5)}${ARW(p+"R", DG.bad)}${ARW(p+"G", DG.ok)}${ARW(p+"O", DG.gold5)}</defs>`;
+const FILL = {dark:DG.navy7, light:"#FFF", bad:DG.badbg, ok:DG.okbg, warn:DG.warnbg, navy:DG.navy9};
+const LINE = {dark:DG.navy5, light:DG.navy5, bad:DG.bad, ok:DG.ok, warn:DG.gold5, navy:DG.navy9};
+function box(x, y, w, h, t, sub, kind="light"){
+  const tc = kind === "dark" || kind === "navy" ? "#FFF" : kind === "bad" ? DG.bad : DG.navy9, sc = kind === "dark" || kind === "navy" ? DG.navy1 : DG.muted;
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${FILL[kind]}" stroke="${LINE[kind]}" stroke-width="1.4"/>`
+    + T(x + w/2, y + (sub ? h/2 - 2 : h/2 + 5), t, {s:12.5, w:700, c:tc}) + (sub ? T(x + w/2, y + h/2 + 13, sub, {s:10.5, c:sc}) : "");
+}
+const ln = (x1, y1, x2, y2, col=DG.navy5, w=2.2, dash="") => `<path d="M${x1},${y1} L${x2},${y2}" stroke="${col}" stroke-width="${w}" fill="none"${dash?` stroke-dasharray="${dash}"`:""}/>`;
+const arr = (p, k, x1, y1, x2, y2, w=2.6) => `<path d="M${x1},${y1} L${x2},${y2}" fill="none" stroke="${({N:DG.navy5,R:DG.bad,G:DG.ok,O:DG.gold5})[k]}" stroke-width="${w}" marker-end="url(#${p}${k})"/>`;
+const tag = (x, y, t, bg=DG.gold5, fg=DG.navy9, r=13) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${bg}"/>` + T(x, y + 4.5, t, {s:13, w:800, c:fg});
+const cloud = (x, y, t) => `<path d="M${x-50},${y+16} a20,20 0 0 1 8,-34 a26,26 0 0 1 46,-10 a22,22 0 0 1 40,14 a18,18 0 0 1 -6,30 z" fill="${DG.navy1}" stroke="${DG.navy5}" stroke-width="1.4"/>` + T(x + 2, y + 4, t, {s:12, w:700, c:DG.navy9});
+const pc = (x, y, t="PC") => `<rect x="${x}" y="${y}" width="46" height="32" rx="4" fill="#FFF" stroke="${DG.navy5}" stroke-width="1.4"/><rect x="${x+16}" y="${y+32}" width="14" height="6" fill="${DG.navy5}"/>` + T(x + 23, y + 21, t, {s:11, w:700, c:DG.navy9});
+const qbox = (x, y, w, h, l) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${DG.warnbg}" stroke="${DG.gold5}" stroke-width="1.6" stroke-dasharray="5 3"/>` + T(x + w/2, y + h/2 + 6, "?", {s:20, w:800, c:DG.gold7});
+
+const DIA = {
+  office(){ const p="of"; let s = open(p, 520, 330, "Riverside Vets network: devices A, B and C");
+    s += cloud(80, 52, "Internet") + qbox(200, 30, 90, 46) + tag(200, 30, "A") + ln(132, 54, 200, 54);
+    s += qbox(200, 140, 90, 46) + tag(200, 140, "B") + ln(245, 76, 245, 140);
+    s += [40, 110, 180].map((x, i) => ln(220 + i*25, 186, x + 23, 246) + pc(x, 246, "PC")).join("");
+    s += `<rect x="285" y="246" width="56" height="34" rx="5" fill="#FFF" stroke="${DG.navy5}" stroke-width="1.4"/>` + T(313, 268, "Printer", {s:11, w:700, c:DG.navy9}) + ln(275, 186, 313, 246);
+    s += ln(290, 163, 380, 163) + qbox(380, 140, 90, 46) + tag(470, 140, "C");
+    s += [0,1,2].map(i => `<path d="M${404+i*10},${200+i*10} a${14+i*10},${14+i*10} 0 0 0 ${42-i*0},0" fill="none" stroke="${DG.navy5}" stroke-width="1.4" opacity="${.8-i*.2}" transform="translate(${-i*10} 0)"/>`).join("");
+    s += pc(380, 262, "Laptop") + `<rect x="452" y="258" width="26" height="44" rx="5" fill="#FFF" stroke="${DG.navy5}" stroke-width="1.4"/>` + T(465, 316, "Phone", {s:10.5, c:DG.muted});
+    s += T(260, 324, "Every computer contains a NIC", {s:11, c:DG.muted});
+    return s + "</svg>"; },
+  hubswitch(){ const p="hs"; let s = open(p, 520, 250, "Six computers connected to a hub");
+    s += box(200, 98, 120, 50, "Hub", "", "dark");
+    const pts = [[30,20],[220,10],[420,20],[30,190],[220,200],[420,190]];
+    s += pts.map(([x,y], i) => ln(x + 23, y + 19, 260, 123, DG.frame) + pc(x, y, "PC" + (i+1))).join("");
+    s += arr(p, "R", 80, 50, 196, 108) + [[230,48],[418,52],[80,190],[250,196],[418,190]].map(([x,y]) => arr(p, "R", 260, 123, x + 12, y + (y < 100 ? 22 : -2), 2)).join("");
+    s += T(260, 176, "PC1 sends a frame for PC5", {s:11.5, w:700, c:DG.bad});
+    return s + "</svg>"; },
+  ipconfig(){ return `<pre class="cmd">Ethernet adapter Ethernet:
+
+   Description . . . . . . . . : Intel(R) Ethernet I219-LM
+   Physical Address. . . . . . : 3C-52-82-1A-7F-09
+   DHCP Enabled. . . . . . . . : Yes
+   IPv4 Address. . . . . . . . : 192.168.1.24(Preferred)
+   Subnet Mask . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . : 192.168.1.1
+   DHCP Server . . . . . . . . : 192.168.1.1
+   DNS Servers . . . . . . . . : 192.168.1.1</pre>`; },
+  email(){ const p="em"; let s = open(p, 520, 230, "Priya's email travelling to Tom");
+    s += box(10, 90, 90, 50, "Priya", "laptop") + box(140, 20, 110, 52, "Mail server", "Priya’s provider", "dark") + box(290, 20, 110, 52, "Mail server", "Tom’s provider", "dark");
+    s += box(420, 120, 90, 40, "Tom", "phone") + box(420, 176, 90, 40, "Tom", "laptop");
+    s += arr(p, "N", 70, 88, 160, 76) + tag(100, 70, "1", DG.navy9, DG.gold3, 12) + arr(p, "N", 250, 46, 286, 46) + tag(268, 92, "2", DG.navy9, DG.gold3, 12) + ln(268, 80, 268, 52, DG.frame, 1);
+    s += arr(p, "O", 380, 72, 440, 116) + arr(p, "O", 370, 72, 430, 172) + tag(430, 92, "3", DG.navy9, DG.gold3, 12);
+    s += T(260, 222, "Arrows 1 and 2 push the email; arrow 3 is how Tom reads it", {s:11, c:DG.muted});
+    return s + "</svg>"; },
+  stack(){ const p="st"; let s = open(p, 420, 300, "The TCP/IP stack with four unnamed layers");
+    s += box(110, 6, 200, 32, "Data from an application", "", "warn");
+    [0,1,2,3].forEach(i => { const y = 54 + i * 56; s += `<rect x="90" y="${y}" width="240" height="44" rx="8" fill="${[DG.navy9,DG.navy7,DG.navy5,DG.link][i]}"/>` + T(210, y + 28, `Layer ${i+1} · ?`, {s:15, w:700, c:"#FFF"}) + tag(70, y + 22, String(i+1)); });
+    s += arr(p, "N", 360, 60, 360, 270) + T(372, 170, "sending", {s:11, c:DG.muted, a:"start"});
+    s += box(110, 280 - 4, 200, 22, "network medium", "", "light").replace(/font-size="12.5"/, 'font-size="11"');
+    return s + "</svg>"; },
+  dns(){ const p="dn"; let s = open(p, 520, 300, "Computers involved when Jamal visits a website");
+    s += box(10, 120, 110, 54, "Jamal’s PC", "browser + cache") + box(170, 120, 120, 54, "DNS resolver", "Jamal’s ISP", "dark");
+    s += box(370, 14, 140, 46, "Root server", "", "dark") + box(370, 80, 140, 46, ".uk TLD server", "", "dark") + box(370, 146, 140, 54, "Authoritative server", "elthamrobotics.co.uk", "dark");
+    s += box(170, 230, 160, 54, "Web server", "elthamrobotics.co.uk", "ok");
+    s += ln(120, 147, 170, 147, DG.frame, 2, "5 4") + [37, 103, 173].map(y => ln(290, 147, 370, y, DG.frame, 2, "5 4")).join("") + ln(65, 174, 170, 257, DG.frame, 2, "5 4");
+    s += T(260, 296, "Dashed lines: connections only. The order is for you to explain.", {s:11, c:DG.muted});
+    return s + "</svg>"; },
+  packets(){ const p="pk"; let s = open(p, 520, 280, "Three packets taking different routes");
+    s += box(6, 110, 80, 50, "Sender") + box(434, 110, 80, 50, "Receiver", "arrived: 2, 1, 3", "ok");
+    const R = {r1:[150,60], r2:[150,210], r3:[260,135], r4:[370,60], r5:[370,210]};
+    const L = [["r1","r3"],["r2","r3"],["r3","r4"],["r3","r5"],["r1","r4"],["r2","r5"],["r4","r5"]];
+    s += ln(86, 135, 150, 60, DG.frame) + ln(86, 135, 150, 210, DG.frame) + ln(370, 60, 434, 135, DG.frame) + ln(370, 210, 434, 135, DG.frame);
+    s += L.map(([a,b]) => ln(R[a][0], R[a][1], R[b][0], R[b][1], DG.frame)).join("");
+    const route = (pts, col, off) => `<path d="M${pts.map(q => `${q[0]+off},${q[1]+off}`).join(" L")}" fill="none" stroke="${col}" stroke-width="3" opacity=".85"/>`;
+    s += route([[86,135],R.r1,R.r4,[434,135]], "#2A5A8C", -4) + route([[86,135],R.r1,R.r3,R.r5,[434,135]], "#1F7A4D", 0) + route([[86,135],R.r2,R.r5,R.r4,[434,135]], DG.gold5, 4);
+    s += Object.entries(R).map(([k,[x,y]]) => `<circle cx="${x}" cy="${y}" r="17" fill="${DG.navy9}"/>` + T(x, y + 4, k.toUpperCase(), {s:11, w:700, c:DG.gold3})).join("");
+    s += [["1","#2A5A8C",260,46],["2","#1F7A4D",314,180],["3",DG.gold5,260,232]].map(([n,c,x,y]) => `<rect x="${x-20}" y="${y-11}" width="40" height="22" rx="5" fill="#FFF" stroke="${c}" stroke-width="2"/>` + T(x, y + 4, "pkt " + n, {s:11, w:700, c:DG.navy9})).join("");
+    return s + "</svg>"; },
+  phish(){ return `<div class="mail"><div class="hd"><b>From:</b> IT Support &lt;it-helpdesk@eltham-co11ege-support.example&gt;<br><b>To:</b> staff-all<br><b>Subject:</b> ACTION REQUIRED: your account will be locked in 2 hours</div>
+    <p style="margin:0 0 8px">Dear Staff Member,</p><p style="margin:0 0 8px">We have detected unusal sign-ins on your account. To keep you’re access, verify your login now:<br><span class="lnk">https://login.eltham-college.org.uk</span> <span class="tip">(hovering shows: http://203.0.113.45/verify)</span></p>
+    <p style="margin:0 0 8px">You will need to enter your password and memorable information.</p><p style="margin:0">IT Services</p></div>`; },
+  sqli(){ const p="sq", mono = "ui-monospace,Consolas,monospace"; let s = open(p, 420, 200, "A login form with SQL typed into the password box");
+    s += `<rect x="10" y="10" width="400" height="180" rx="10" fill="#FFF" stroke="${DG.navy5}" stroke-width="1.4"/>` + T(30, 38, "MEMBER LOGIN", {s:12, w:700, c:DG.gold7, a:"start"});
+    s += T(30, 72, "Username", {s:12, c:DG.muted, a:"start"}) + `<rect x="120" y="54" width="270" height="28" rx="5" fill="${DG.paper}" stroke="${DG.frame}"/>` + T(130, 73, "admin", {s:14, w:700, c:DG.navy9, a:"start", f:mono});
+    s += T(30, 116, "Password", {s:12, c:DG.muted, a:"start"}) + `<rect x="120" y="98" width="270" height="28" rx="5" fill="${DG.paper}" stroke="${DG.bad}" stroke-width="1.6"/>` + T(130, 117, "' OR '1'='1", {s:14, w:700, c:DG.bad, a:"start", f:mono});
+    s += `<rect x="120" y="140" width="90" height="30" rx="6" fill="${DG.navy9}"/>` + T(165, 160, "Log in", {s:12.5, w:700, c:"#FFF"});
+    s += T(210, 184, "query: SELECT * FROM users WHERE name='…' AND pass='…'", {s:9.5, c:DG.muted, f:mono});
+    return s + "</svg>"; },
+  ddos(){ const p="dd"; let s = open(p, 520, 240, "Thousands of computers sending requests to one web server");
+    s += box(370, 90, 140, 60, "GreenGrocer", "web server", "dark");
+    for (let i = 0; i < 12; i++){ const x = 10 + (i % 3) * 62, y = 10 + Math.floor(i / 3) * 56; s += pc(x, y, "") + arr(p, "R", x + 46, y + 16, 366, 104 + (i % 6) * 7, 1.4); }
+    s += box(370, 172, 140, 44, "Real customer", "", "light") + arr(p, "N", 440, 172, 440, 154) + T(470, 236, "✗ no reply", {s:12, w:700, c:DG.bad});
+    return s + "</svg>"; },
+  firewall(){ const p="fw"; let s = open(p, 520, 170, "A firewall between the school network and the Internet");
+    s += box(10, 50, 150, 70, "School network", "PCs, servers", "light") + cloud(440, 82, "Internet");
+    s += `<rect x="236" y="20" width="44" height="130" rx="6" fill="${DG.navy9}"/>` + T(258, 85, "FIREWALL", {s:12, w:700, c:DG.gold3}).replace("<text", `<text transform="rotate(-90 258 85)"`);
+    s += arr(p, "G", 160, 70, 232, 70) + arr(p, "G", 284, 70, 382, 70) + arr(p, "N", 382, 100, 284, 100) + arr(p, "R", 232, 100, 160, 100).replace(DG.bad, DG.frame) ;
+    s += T(330, 130, "traffic in both directions", {s:11, c:DG.muted});
+    return s + "</svg>"; },
+  e_stage(){ const p="es"; let s = open(p, 520, 230, "StageDoor Tickets system");
+    s += [0,1,2].map(i => pc(10, 10 + i * 52, "")).join("") + T(34, 172, "customers", {s:11, c:DG.muted}) + box(10, 186, 110, 38, "Box office", "staff log in", "warn");
+    s += cloud(220, 100, "Internet") + [26, 78, 130].map(y => ln(56, y, 170, 100, DG.frame)).join("") + ln(120, 205, 190, 120, DG.frame);
+    s += box(320, 40, 190, 50, "Web server", "ticket sales", "dark") + box(320, 130, 190, 50, "Database", "accounts · card details", "dark") + ln(272, 96, 320, 65) + ln(415, 90, 415, 130);
+    s += T(415, 210, "Release day: thousands at once", {s:11.5, w:700, c:DG.bad});
+    return s + "</svg>"; },
+  e_hill(){ const p="eh"; let s = open(p, 520, 230, "Hillside Academy main building and new sixth-form building");
+    s += box(10, 30, 150, 170, "", "", "light") + T(85, 52, "MAIN BUILDING", {s:11, w:700, c:DG.gold7}) + box(25, 70, 120, 44, "File server", "", "dark") + box(25, 130, 120, 44, "Router", "to the Internet", "dark");
+    s += box(340, 20, 170, 200, "", "", "light") + T(425, 40, "NEW SIXTH-FORM BUILDING", {s:11, w:700, c:DG.gold7});
+    s += box(352, 54, 70, 50, "Room 1", "30 PCs", "warn") + box(428, 54, 70, 50, "Room 2", "30 PCs", "warn") + box(352, 114, 146, 50, "Study area", "80 laptops and phones", "warn") + box(352, 174, 146, 34, "2 printers", "", "warn");
+    s += ln(160, 115, 340, 115, DG.gold5, 3, "8 5") + T(250, 106, "500 m", {s:15, w:800, c:DG.gold7}) + T(250, 134, "link: ?", {s:12, c:DG.muted});
+    return s + "</svg>"; },
+  e_talk(){ const p="et"; let s = open(p, 520, 200, "TalkTime video call and file transfer");
+    s += `<rect x="20" y="40" width="70" height="120" rx="12" fill="#FFF" stroke="${DG.navy5}" stroke-width="1.6"/>` + T(55, 104, "📹", {s:26}) + `<rect x="430" y="40" width="70" height="120" rx="12" fill="#FFF" stroke="${DG.navy5}" stroke-width="1.6"/>` + T(465, 104, "📹", {s:26});
+    s += cloud(260, 100, "Internet") + arr(p, "N", 90, 80, 200, 90) + arr(p, "N", 320, 90, 428, 80) + arr(p, "O", 428, 130, 320, 118) + arr(p, "O", 200, 118, 90, 130);
+    s += T(260, 30, "live video: every second counts", {s:12, w:700, c:DG.navy9}) + T(260, 180, "large files: every byte must arrive", {s:12, w:700, c:DG.gold7});
+    return s + "</svg>"; },
+  e_bright(){ const p="eb"; let s = open(p, 520, 210, "BrightHome devices controlled from a phone app");
+    s += `<rect x="20" y="50" width="62" height="110" rx="12" fill="#FFF" stroke="${DG.navy5}" stroke-width="1.6"/>` + T(51, 112, "app", {s:13, w:700, c:DG.navy9});
+    s += box(170, 80, 110, 50, "Home router", "Wi-Fi", "dark") + box(380, 20, 120, 46, "💡 Smart light", "") + box(380, 82, 120, 46, "🌡 Thermostat", "") + box(380, 144, 120, 46, "Other brand?", "", "warn");
+    s += arr(p, "N", 82, 105, 166, 105) + ln(280, 105, 380, 43) + ln(280, 105, 380, 105) + ln(280, 105, 380, 167, DG.gold5, 2.2, "6 4");
+    s += T(330, 204, "Which protocol do they speak?", {s:12, w:700, c:DG.gold7});
+    return s + "</svg>"; },
+};
+const isSvg = k => DIA[k] && DIA[k]().startsWith("<svg");
+
+/* ------------------------------------------------------------------ timing */
+function tkey(k){ return S.t[k] || (S.t[k] = {ms:0, first:0, last:0}); }
+let lastAct = 0, lastTick = Date.now();
+function activeField(){ const a = document.activeElement; return a && a.matches && a.matches("textarea[data-val],input[data-val]") ? a : null; }
+document.addEventListener("input", e => { if (e.target.matches?.("[data-val]")){ lastAct = Date.now(); const r = tkey(e.target.dataset.val); if (!r.first) r.first = lastAct; r.last = lastAct; } }, true);
+document.addEventListener("keydown", () => { lastAct = Date.now(); }, true);
+document.addEventListener("focusin", e => { if (e.target.matches?.("[data-val]")) lastAct = Date.now(); });
+setInterval(() => {
+  const now = Date.now(), dt = Math.min(now - lastTick, 5000); lastTick = now;
+  const f = activeField();
+  if (!f || document.hidden || now - lastAct > IDLE) return;
+  tkey(f.dataset.val).ms += dt; save(); paintTimes();
+}, 1000);
+function timeOf(keys){ return keys.reduce((s, k) => s + ((S.t[k]||{}).ms || 0), 0); }
+
+/* ------------------------------------------------------------------ Part A */
+const Q = DATA.questions, TOP = DATA.topics;
+const params = new URLSearchParams(location.search);
+let topic = params.get("topic") || S.topic || "all";
+const partKeys = (q, p) => p.kind === "lines" ? p.labels.map((_, i) => `q-${q.id}-${p.id}-${i}`) : [`q-${q.id}-${p.id}`];
+const qKeys = q => q.parts.flatMap(p => partKeys(q, p));
+const qMarks = q => q.parts.reduce((s, p) => s + p.marks, 0);
+const qDone = q => qKeys(q).filter(k => (S.val[k]||"").trim()).length;
+const msId = (q, p) => `ms-${q.id}-${p.id}`;
+
+function renderTabs(){
+  const all = [["all", "All topics"], ...TOP.map(t => [t[0], t[1]])];
+  $("#tabs").innerHTML = all.map(([k, n]) => { const qs = Q.filter(q => k === "all" || q.topic === k), d = qs.filter(q => qDone(q) === qKeys(q).length).length;
+    return `<button data-topic="${k}" class="${topic === k ? "on" : ""}">${n}<small>${d}/${qs.length}</small></button>`; }).join("");
+}
+function buildQs(){
+  let n = 0;
+  $("#qs").innerHTML = Q.map(q => {
+    n++; const t = TOP.find(x => x[0] === q.topic), d = q.dia ? DIA[q.dia]() : "";
+    const parts = q.parts.map(p => {
+      const lbl = q.parts.length > 1 ? `<span class="pl">(${p.id})</span>` : "";
+      let f;
+      if (p.kind === "lines"){
+        const wide = p.labels.some(l => l.length > 14);
+        f = p.labels.map((l, i) => { const k = `q-${q.id}-${p.id}-${i}`;
+          return `<div class="line${wide ? " wide" : ""}"><span>${esc(l)}</span>${p.rows ? `<textarea data-val="${k}" rows="${p.rows}"></textarea>` : `<input class="ans" type="text" data-val="${k}" autocomplete="off">`}</div>`; }).join("");
+      } else f = `<textarea data-val="q-${q.id}-${p.id}" rows="${Math.max(3, Math.round(p.marks * 1.6) + 1)}"></textarea>`;
+      return `<div class="part"><p class="pq">${lbl}${p.q} <span class="pm">[${p.marks}]</span></p>${f}<div class="meta" data-pmeta="${q.id}-${p.id}"></div><div class="ms" id="${msId(q,p)}"></div></div>`;
+    }).join("");
+    return `<section class="card qcard" data-q="${q.id}" data-topic="${q.topic}"><header><span class="num">${n}</span><h2>${esc(q.title)}</h2><span class="pill">${esc(t[1])}</span><span class="pill marks">${qMarks(q)} marks</span><span class="tbadge" id="tb-${q.id}"></span></header>`
+      + (q.ctx ? `<p class="ctx">${q.ctx}</p>` : "")
+      + `<div class="qbody${d ? "" : " nodia"}">${d ? `<div class="dia">${d}</div>` : ""}<div>${parts}</div></div></section>`;
+  }).join("");
+}
+function applyTopic(){ $$(".qcard").forEach(c => c.classList.toggle("hide", topic !== "all" && c.dataset.topic !== topic)); renderTabs(); }
+$("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-topic]"); if (!b) return; topic = b.dataset.topic; S.topic = topic; save(); applyTopic(); });
+
+/* ------------------------------------------------------------------ Part B */
+const E = DATA.essays;
+let cur = params.get("essay") || S.essay || "";
+if (!E.find(e => e.id === cur)) cur = "";
+const AOQ = {ao1:["AO1 · Know it", "What is it? How does it work? Use technical terms."], ao2:["AO2 · Apply it", "What does it mean for this organisation? Use details from the scenario."], ao3:["AO3 · Evaluate it", "How effective / important is it? What are the limits? Weigh it up."]};
+const EVAL = ["however", "whereas", "although", "on the other hand", "but ", "effective", "important", "outweigh", "depends", "limit", "drawback", "advantage", "disadvantage", "more ", "less ", "better", "worse", "therefore", "so ", "because", "risk", "cost"];
+const JUDGE = ["recommend", "should", "overall", "therefore", "best", "most suitable", "in conclusion", "conclude"];
+const REASON = ["because", "since", " as ", "due to", "this means", "so that"];
+const has = (t, list) => { t = " " + String(t||"").toLowerCase() + " "; return list.filter(w => t.includes(w)); };
+const ek = (e, s) => `es-${e.id}-${s}`;
+const chainsOf = e => S.chains[e.id] || (S.chains[e.id] = 3);
+const eKeys = e => { const k = []; for (let i = 0; i < chainsOf(e); i++) k.push(ek(e, `c${i}-ao1`), ek(e, `c${i}-ao2`), ek(e, `c${i}-ao3`)); return [...k, ek(e, "concl"), ek(e, "final")]; };
+const eWords = e => eKeys(e).filter(k => !k.endsWith("final")).reduce((s, k) => s + words(S.val[k]), 0);
+
+function renderPick(){
+  $("#pick").innerHTML = E.map(e => { const t = TOP.find(x => x[0] === e.topic), w = words(S.val[ek(e, "final")]), pw = eWords(e);
+    return `<button data-essay="${e.id}" class="${cur === e.id ? "on" : ""}"><b>${esc(e.title)}</b><small>${esc(t[1])} · 9 marks</small>${pw || w ? `<span class="st">${w ? `Essay: ${w} words` : `Plan: ${pw} words`}</span>` : ""}</button>`; }).join("");
+}
+$("#pick").addEventListener("click", e => { const b = e.target.closest("[data-essay]"); if (!b) return; cur = b.dataset.essay; S.essay = cur; save(); renderPick(); buildEssay(); });
+
+function starterBtns(kind, target, org){ return `<div class="starters">${DATA.starters[kind].map(s => s.replace(/\[org\]/g, org)).map(s => `<button type="button" data-ins="${esc(s.split("…")[0].trim())}" data-into="${target}">${esc(s)}</button>`).join("")}</div>`; }
+function buildEssay(){
+  const host = $("#essay");
+  if (!cur){ host.innerHTML = `<p class="howto">Choose a scenario above to start.</p>`; return; }
+  const e = E.find(x => x.id === cur), n = chainsOf(e), ao = DATA.essayAO;
+  let h = `<section class="card" id="ecard"><header><span class="num">B</span><h2>${esc(e.title)}</h2><span class="pill marks">9 marks</span><span class="tbadge" id="tb-essay"></span></header>`;
+  h += `<div class="qbody"><div class="dia">${DIA[e.dia]()}</div><div><p class="ctx">${esc(e.scenario)}</p></div></div>`;
+  h += `<div class="eq"><p><span class="cmdw">Discuss</span> ${esc(e.q.replace(/^Discuss /, ""))}</p><p>You should include the following in your answer:</p><ul>${e.bullets.map(b => `<li>${esc(b)}</li>`).join("")}</ul><p style="text-align:right;font-weight:700;margin:0">[9]</p></div>`;
+  h += `<div class="aobar"><div class="a1" style="flex:4">AO1 · 4 marks<small>knowledge and understanding</small></div><div class="a2" style="flex:2">AO2 · 2<small>apply to the scenario</small></div><div class="a3" style="flex:3">AO3 · 3<small>evaluate and conclude</small></div></div>`;
+  h += `<p class="howto"><b>Discuss</b> means: explain both sides, link every point to the scenario, and reach a judgement you can justify. Aim for at least three paragraphs, each one a chain: <b style="color:var(--ao1)">know it</b> → <b style="color:var(--ao2)">apply it</b> → <b style="color:var(--ao3)">evaluate it</b>.</p>`;
+  h += `<div class="ems" id="ems"></div>`;
+  h += `<h3 class="sub">Step 1 · Plan your paragraphs</h3>`;
+  for (let i = 0; i < n; i++){
+    h += `<div class="chain" data-chain="${i}"><div class="chainh"><h3>Paragraph ${i+1}</h3><select data-val="${ek(e, `c${i}-f`)}" aria-label="Paragraph ${i+1} focus"><option value="">This paragraph is about…</option>${e.factors.map(f => `<option>${esc(f)}</option>`).join("")}</select>${i >= 3 && i === n - 1 ? `<button class="rm" type="button" data-rmchain>Remove</button>` : ""}</div><div class="aocols">`
+      + ["ao1","ao2","ao3"].map(a => `<div class="aobox ${a}"><h4>${AOQ[a][0]}</h4><p class="q">${AOQ[a][1]}</p>${starterBtns(a, ek(e, `c${i}-${a}`), e.title)}<textarea data-val="${ek(e, `c${i}-${a}`)}" rows="5"></textarea></div>`).join("")
+      + `</div><div class="ticks" id="ticks-${i}"></div></div>`;
+  }
+  h += `<div class="bar" style="margin-top:0"><button class="btn ghostb" type="button" id="addChain"${n >= 5 ? " disabled" : ""}>+ Add a paragraph</button><span class="howto" style="margin:0">Up to 5. Strong answers cover a range of points and weigh them against each other.</span></div>`;
+  h += `<h3 class="sub">Step 2 · Conclusion (AO3)</h3><div class="aobox ao3"><p class="q">Answer the question directly. Make a judgement and give the deciding reason. Mention what would change your mind.</p>${starterBtns("concl", ek(e, "concl"), e.title)}<textarea data-val="${ek(e, "concl")}" rows="4"></textarea></div>`;
+  h += `<div class="check" id="echeck"></div>`;
+  h += `<h3 class="sub">Step 3 · Build and polish your essay</h3><p class="howto">Press <b>Build my essay</b> to join your plan into paragraphs. Then edit it into flowing prose: add linking words, cut repetition, and make sure every paragraph ties back to ${esc(e.title)}. This is the answer your teacher will mark.</p>`;
+  h += `<div class="bar" style="margin:0 0 8px"><button class="btn" type="button" id="buildEssay">Build my essay</button><span class="msg" id="buildMsg"></span></div><textarea id="finalEssay" data-val="${ek(e, "final")}" rows="14" placeholder="Your essay appears here when you press Build my essay. You can also write it from scratch."></textarea><div class="meta" id="finalMeta"></div>`;
+  h += `</section>`;
+  host.innerHTML = h;
+  wire(host); updateEssay(); if (MS) fillEssayMs();
+}
+function chainTicks(e, i){
+  const a1 = S.val[ek(e, `c${i}-ao1`)], a2 = S.val[ek(e, `c${i}-ao2`)], a3 = S.val[ek(e, `c${i}-ao3`)];
+  return [["Focus chosen", !!S.val[ek(e, `c${i}-f`)]], ["AO1 uses a technical term", has(a1, e.tech).length > 0], ["AO2 mentions the scenario", has(a2, e.ctx).length > 0], ["AO3 weighs it up", has(a3, EVAL).length > 0]];
+}
+function updateEssay(){
+  if (!cur || !$("#ecard")) return;
+  const e = E.find(x => x.id === cur), n = chainsOf(e);
+  let full = 0; const foci = new Set();
+  for (let i = 0; i < n; i++){
+    const t = chainTicks(e, i); if (t.every(x => x[1])) full++;
+    const f = S.val[ek(e, `c${i}-f`)]; if (f) foci.add(f);
+    const el = $("#ticks-" + i); if (el) el.innerHTML = t.map(([l, y]) => `<span class="${y ? "y" : ""}">${y ? "✓" : "○"} ${l}</span>`).join("");
+  }
+  let a1 = "", a2 = ""; for (let i = 0; i < n; i++){ a1 += " " + (S.val[ek(e, `c${i}-ao1`)]||""); a2 += " " + (S.val[ek(e, `c${i}-ao2`)]||""); }
+  const terms = new Set(has(a1 + " " + (S.val[ek(e, "final")]||""), e.tech)), concl = S.val[ek(e, "concl")] || "";
+  const items = [
+    [`Three or more complete paragraph chains (${full} so far)`, full >= 3],
+    [`At least two different points covered (${foci.size})`, foci.size >= 2],
+    [`Five or more different technical terms (${terms.size})`, terms.size >= 5],
+    [`The scenario is used in your AO2 boxes`, has(a2, e.ctx).length >= 2],
+    [`Conclusion makes a judgement`, has(concl, JUDGE).length > 0],
+    [`Conclusion gives a reason for the judgement`, has(concl, REASON).length > 0],
+    [`Essay built and edited (${words(S.val[ek(e, "final")])} words)`, words(S.val[ek(e, "final")]) >= 150],
+  ];
+  $("#echeck").innerHTML = `<h3>✓ Before you hand in</h3><ul>${items.map(([l, y]) => `<li class="${y ? "y" : ""}">${l}</li>`).join("")}</ul><p class="note">This checklist looks for the features of a good answer. It is not a mark: your teacher marks the essay against the levels.</p>`;
+  S.echeck = S.echeck || {}; S.echeck[e.id] = items.map(x => [x[0], x[1]]);
+}
+$("#essay").addEventListener("click", ev => {
+  const ins = ev.target.closest("[data-ins]");
+  if (ins){ const ta = $(`[data-val="${ins.dataset.into}"]`); const pos = ta.selectionStart ?? ta.value.length, v = ta.value, pre = v.slice(0, pos), sp = pre && !/\s$/.test(pre) ? " " : "";
+    ta.value = pre + sp + ins.dataset.ins + " " + v.slice(pos); ta.focus(); const c = (pre + sp + ins.dataset.ins + " ").length; ta.setSelectionRange(c, c); ta.dispatchEvent(new Event("input", {bubbles:true})); return; }
+  const e = E.find(x => x.id === cur); if (!e) return;
+  if (ev.target.id === "addChain"){ S.chains[e.id] = Math.min(5, chainsOf(e) + 1); save(); buildEssay(); }
+  if (ev.target.closest("[data-rmchain]")){ const i = chainsOf(e) - 1; ["f","ao1","ao2","ao3"].forEach(s => { delete S.val[ek(e, `c${i}-${s}`)]; }); S.chains[e.id] = i; save(); buildEssay(); }
+  if (ev.target.id === "buildEssay"){
+    const fin = $("#finalEssay");
+    if (fin.value.trim() && !confirm("Replace the essay box with a fresh build from your plan? Edits you made in the essay box will be lost.")) return;
+    const paras = [];
+    for (let i = 0; i < chainsOf(e); i++){ const p = ["ao1","ao2","ao3"].map(a => (S.val[ek(e, `c${i}-${a}`)]||"").trim()).filter(Boolean).map(s => /[.!?]$/.test(s) ? s : s + ".").join(" "); if (p) paras.push(p); }
+    const c = (S.val[ek(e, "concl")]||"").trim(); if (c) paras.push(/[.!?]$/.test(c) ? c : c + ".");
+    if (!paras.length){ $("#buildMsg").textContent = "Your plan is empty: fill in some boxes first."; return; }
+    fin.value = paras.join("\n\n"); S.val[fin.dataset.val] = fin.value; save(); $("#buildMsg").textContent = "Built. Now edit it into flowing prose."; updateEssay(); renderPick(); paintTimes();
+  }
+});
+
+/* ------------------------------------------------------------------ wiring */
+function wire(root){
+  $$("[data-val]", root).forEach(el => {
+    const k = el.dataset.val;
+    if (S.val[k] != null) el.value = S.val[k];
+    const h = () => { S.val[k] = el.value; save(); onChange(k); };
+    el.addEventListener("input", h); el.addEventListener("change", h);
+  });
+}
+function onChange(k){
+  if (k.startsWith("es-")){ updateEssay(); renderPick(); }
+  else if (k.startsWith("q-")) renderTabs();
+  paintTimes();
+}
+function paintTimes(){
+  let tot = 0;
+  Q.forEach(q => { const ms = timeOf(qKeys(q)); tot += ms; const b = $("#tb-" + q.id); if (!b) return; const d = qDone(q), n = qKeys(q).length;
+    b.textContent = `⏱ ${fmt(ms)} · ${d}/${n} answered`; b.className = "tbadge" + (d === n ? " done" : "");
+    q.parts.forEach(p => { const m = $(`[data-pmeta="${q.id}-${p.id}"]`); if (m){ const ks = partKeys(q, p), w = ks.reduce((s, k) => s + words(S.val[k]), 0); m.textContent = w ? `${w} words · ${fmt(timeOf(ks))}` : ""; } }); });
+  E.forEach(e => { const ms = timeOf(eKeys(e)); tot += ms; if (e.id === cur){ const b = $("#tb-essay"); if (b) b.textContent = `⏱ ${fmt(ms)} writing`; const f = $("#finalMeta"); if (f) f.textContent = `${words(S.val[ek(e, "final")])} words · ${fmt(timeOf([ek(e, "final")]))} on the essay box`; } });
+  $("#totTime").textContent = fmt(tot);
+}
+
+/* ------------------------------------------------------------------ teacher mode */
+let MS = null;
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function unlockMs(code){
+  if (!window.crypto?.subtle) throw new Error("This browser can’t decrypt here (needs https).");
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(code.trim().toUpperCase()), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({name:"PBKDF2", salt:b64(MSBLOB.salt), iterations:MSBLOB.iter, hash:"SHA-256"}, base, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(MSBLOB.iv)}, key, b64(MSBLOB.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+const msList = pts => `<ul>${pts.map(t => t.startsWith("§") ? `<li class="g">${esc(t.slice(1).trim())}</li>` : `<li>${esc(t)}</li>`).join("")}</ul>`;
+function fillMs(){
+  Q.forEach(q => q.parts.forEach(p => { const el = $("#" + msId(q, p)), pts = MS[`${q.id}-${p.id}`]; if (el && pts) el.innerHTML = `<b>MARK SCHEME [${p.marks}]</b>` + msList(pts); }));
+  fillEssayMs();
+}
+function essayMsHtml(e){
+  const m = MS[e.id]; if (!m) return "";
+  return `<b style="color:var(--warn);font-size:12px;letter-spacing:.08em">INDICATIVE CONTENT · LEVELS OF RESPONSE</b>` + ["AO1","AO2","AO3"].map(a => `<h4>${a}</h4>${msList(m[a])}`).join("")
+    + `<table>${DATA.levels.map(l => `<tr><td style="width:56px"><b>${l[0]}</b></td><td>${esc(l[1])}</td></tr>`).join("")}</table>`;
+}
+function fillEssayMs(){ if (!MS || !cur) return; const el = $("#ems"); if (el) el.innerHTML = essayMsHtml(E.find(x => x.id === cur)); }
+$("#tOpen").addEventListener("click", () => { $("#tPanel").classList.toggle("open"); $("#tCode").focus(); });
+async function tryUnlock(){
+  try { MS = await unlockMs($("#tCode").value); document.body.classList.add("teacher"); fillMs(); $("#tMsg").textContent = ""; $("#tCode").value = ""; scrollTo({top:0, behavior:"smooth"}); }
+  catch(err){ $("#tMsg").textContent = err.message && err.message.includes("https") ? err.message : "That code isn’t right."; }
+}
+$("#tGo").addEventListener("click", tryUnlock);
+$("#tCode").addEventListener("keydown", e => { if (e.key === "Enter") tryUnlock(); });
+$("#msHide").addEventListener("click", () => { document.body.classList.remove("teacher"); MS = null; $$(".ms,.ems").forEach(x => x.innerHTML = ""); });
+$("#msPrint").addEventListener("click", () => {
+  if (!MS) return;
+  let n = 0, h = `<div style="font-family:Arial,sans-serif;font-size:10.5pt;line-height:1.4"><h1 style="font-family:Georgia,serif;font-weight:400;font-size:20pt;margin:0 0 4px">Networks practice · Mark scheme</h1><p style="margin:0 0 10px;color:#555D68">Year 12 · OCR H446 1.3.3 · teacher copy</p>`;
+  Q.forEach(q => { n++; h += `<h2 style="font-family:Georgia,serif;font-weight:400;font-size:14pt;border-bottom:2px solid #C89B3C;margin:12px 0 4px">${n}. ${esc(q.title)} [${qMarks(q)}]</h2>`;
+    q.parts.forEach(p => { h += `<div style="page-break-inside:avoid"><p style="margin:4px 0 2px"><b>(${p.id})</b> ${p.q} <b>[${p.marks}]</b></p>${msList(MS[`${q.id}-${p.id}`] || [])}</div>`; }); });
+  E.forEach(e => { h += `<h2 style="font-family:Georgia,serif;font-weight:400;font-size:14pt;border-bottom:2px solid #C89B3C;margin:16px 0 4px">Essay: ${esc(e.title)} [9]</h2><p style="margin:2px 0"><i>${esc(e.q)}</i></p>${essayMsHtml(e)}`; });
+  const w = window.open("", "_blank"); if (!w) return;
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Networks practice mark scheme</title><style>@page{size:A4;margin:12mm} h4{margin:6px 0 0} ul{margin:2px 0 4px} td{border-top:1px solid #E3C783;padding:3px 5px;vertical-align:top} table{border-collapse:collapse;width:100%} li.g{list-style:none;color:#555;font-style:italic}</style></head><body>${h}</div><script>setTimeout(()=>print(),400)<\/script></body></html>`);
+  w.document.close();
+});
+
+/* ------------------------------------------------------------------ export */
+function svgToPng(svgStr, scale = 2){
+  return new Promise(res => {
+    const d = new DOMParser().parseFromString(svgStr, "image/svg+xml").documentElement;
+    const vb = (d.getAttribute("viewBox") || "0 0 520 300").split(/\s+/).map(Number);
+    d.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(d));
+    const img = new Image();
+    img.onload = () => { const cv = document.createElement("canvas"); cv.width = vb[2] * scale; cv.height = vb[3] * scale; const x = cv.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, cv.width, cv.height); x.scale(scale, scale); x.drawImage(img, 0, 0); res({src:cv.toDataURL("image/png"), w:vb[2]}); };
+    img.onerror = () => res(null); img.src = url;
+  });
+}
+const pdfTime = k => { const r = S.t[k]; return r && r.ms ? fmt(r.ms) : "0m 00s"; };
+const span = keys => { const f = keys.map(k => (S.t[k]||{}).first).filter(Boolean), l = keys.map(k => (S.t[k]||{}).last).filter(Boolean); if (!f.length) return ""; const a = new Date(Math.min(...f)), b = new Date(Math.max(...l)), o = {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}; return `${a.toLocaleString("en-GB", o)} → ${b.toLocaleString("en-GB", o)}`; };
+async function reportHtml(){
+  const name = (S.name||"").trim() || "(no name)", cls = (S.cls||"").trim();
+  const TB = 'style="border-collapse:collapse;width:100%;font-size:9.5pt;margin:4px 0"';
+  const cell = (t, st="") => `<td style="border:1px solid #B9C3CF;padding:4px 6px;vertical-align:top;${st}">${t}</td>`;
+  const th = t => `<th style="border:1px solid #0A1B2E;background:#0A1B2E;color:#fff;padding:4px 6px;text-align:left;font-size:9pt">${t}</th>`;
+  const h2 = t => `<h2 style="font-family:Georgia,serif;font-weight:400;color:#0A1B2E;font-size:15pt;margin:14px 0 6px;border-bottom:2px solid #C89B3C;padding-bottom:3px">${t}</h2>`;
+  const txt = k => { const v = (S.val[k]||"").trim(); return v ? esc(v).replace(/\n/g,"<br>") : `<span style="color:#B3261E">(not answered)</span>`; };
+  const mk = m => `<span style="display:inline-block;border:1.5px solid #0A1B2E;border-radius:4px;padding:1px 8px;font-weight:bold;white-space:nowrap">Mark: ____ / ${m}</span>`;
+  const show = Q.filter(q => topic === "all" || q.topic === topic || qDone(q));
+  const essays = E.filter(e => eKeys(e).some(k => (S.val[k]||"").trim()));
+  let totA = 0, totM = 0;
+  let h = `<div style="font-family:Arial,sans-serif;color:#1A1D21;font-size:10.5pt;line-height:1.4;padding:4mm">`;
+  const allTime = timeOf(Q.flatMap(qKeys)) + timeOf(E.flatMap(eKeys));
+  h += `<div style="background:#0A1B2E;color:#fff;padding:10px 14px;border-radius:6px"><div style="font-size:9pt;letter-spacing:.1em;color:#E3C783;font-weight:bold">YEAR 12 · OCR H446 1.3.3 · NETWORKS · EXAM PRACTICE</div><div style="font-family:Georgia,serif;font-size:19pt">Exam Practice and Essay Builder</div><div style="font-size:10.5pt;color:#D7E3EF">${esc(name)}${cls ? " · "+esc(cls) : ""} · exported ${new Date().toLocaleString("en-GB")} · total writing time ${fmt(allTime)}</div></div>`;
+  h += `<p style="font-size:8.5pt;color:#555D68;margin:4px 0 6px">Writing time counts only while an answer box is in use; pauses of more than 90 seconds are not counted. “First → last edit” shows when the answer was started and last changed.</p>`;
+  h += `<table ${TB}><tr>${th("#")}${th("Question")}${th("Marks")}${th("Answered")}${th("Writing time")}${th("Words")}${th("Mark")}</tr>`;
+  show.forEach(q => { const i = Q.indexOf(q) + 1, ks = qKeys(q), w = ks.reduce((s, k) => s + words(S.val[k]), 0); totM += qMarks(q); totA += timeOf(ks);
+    h += `<tr>${cell(i)}${cell(esc(q.title))}${cell(qMarks(q))}${cell(`${qDone(q)}/${ks.length}`)}${cell(fmt(timeOf(ks)))}${cell(w)}${cell("&nbsp;", "width:60px")}</tr>`; });
+  essays.forEach(e => h += `<tr>${cell("B")}${cell("Essay: " + esc(e.title))}${cell(9)}${cell(words(S.val[ek(e,"final")]) ? "essay" : "plan only")}${cell(fmt(timeOf(eKeys(e))))}${cell(words(S.val[ek(e,"final")]))}${cell("&nbsp;")}</tr>`);
+  h += `<tr>${cell("")}${cell("<b>Total</b>")}${cell(`<b>${totM + essays.length * 9}</b>`)}${cell("")}${cell(`<b>${fmt(totA + timeOf(essays.flatMap(eKeys)))}</b>`)}${cell("")}${cell("")}</tr></table>`;
+  if (show.length) h += `<div style="page-break-before:always"></div>` + h2("Part A · Short questions");
+  for (const q of show){
+    const i = Q.indexOf(q) + 1;
+    h += `<div style="page-break-inside:avoid;margin-top:10px"><div style="font-weight:bold;font-size:11.5pt;color:#0A1B2E">${i}. ${esc(q.title)} <span style="font-weight:normal;color:#555D68;font-size:9.5pt">[${qMarks(q)} marks]</span></div>`;
+    if (q.ctx) h += `<p style="margin:2px 0 4px">${q.ctx}</p>`;
+    if (q.dia){ if (isSvg(q.dia)){ const im = await svgToPng(DIA[q.dia]()); if (im) h += `<img src="${im.src}" style="width:${Math.round(im.w * .2)}mm;max-width:100%;border:1px solid #E3E8EF;border-radius:4px">`; } else h += `<div style="max-width:150mm;font-size:9pt">${DIA[q.dia]().replace(/class="cmd"/, 'style="background:#0A1B2E;color:#E8EDF3;padding:6px 8px;border-radius:6px;font:8.5pt ui-monospace,Consolas,monospace;white-space:pre;margin:0"').replace(/class="mail"/, 'style="border:1px solid #B9C3CF;border-radius:6px;padding:6px 8px"')}</div>`; }
+    h += `</div>`;
+    q.parts.forEach(p => { const ks = partKeys(q, p);
+      h += `<div style="page-break-inside:avoid;margin:6px 0 8px"><p style="margin:2px 0">${q.parts.length > 1 ? `<b>(${p.id})</b> ` : ""}${p.q} <b>[${p.marks}]</b></p>`;
+      if (p.kind === "lines") h += `<table ${TB}>${p.labels.map((l, j) => `<tr>${cell(`<b>${esc(l)}</b>`, "width:30%;background:#F7F8FA")}${cell(txt(ks[j]))}${cell(pdfTime(ks[j]), "width:62px;color:#555D68;font-size:8.5pt")}</tr>`).join("")}</table>`;
+      else h += `<div style="border:1px solid #B9C3CF;padding:6px;min-height:14mm">${txt(ks[0])}</div>`;
+      const w = ks.reduce((s, k) => s + words(S.val[k]), 0), sp = span(ks);
+      h += `<div style="display:flex;justify-content:space-between;align-items:center;font-size:8.5pt;color:#555D68;margin-top:3px"><span>⏱ ${fmt(timeOf(ks))} writing · ${w} words${sp ? " · first → last edit: " + sp : ""}</span>${mk(p.marks)}</div></div>`; });
+  }
+  for (const e of essays){
+    h += `<div style="page-break-before:always"></div>` + h2(`Part B · Essay: ${esc(e.title)} [9]`);
+    const im = await svgToPng(DIA[e.dia]()); if (im) h += `<img src="${im.src}" style="width:90mm;float:right;margin:0 0 6px 8px;border:1px solid #E3E8EF;border-radius:4px">`;
+    h += `<p style="margin:2px 0 4px">${esc(e.scenario)}</p><p style="margin:4px 0"><b>${esc(e.q)}</b></p><ul style="margin:2px 0 6px">${e.bullets.map(b => `<li>${esc(b)}</li>`).join("")}</ul><div style="clear:both"></div>`;
+    h += `<div style="font-weight:bold;margin:8px 0 2px">Plan</div><table ${TB}><tr>${th("¶")}${th("Focus")}${th("AO1 · Know it")}${th("AO2 · Apply it")}${th("AO3 · Evaluate it")}</tr>`;
+    for (let i = 0; i < chainsOf(e); i++){ const t = [`c${i}-ao1`,`c${i}-ao2`,`c${i}-ao3`].map(s => ek(e, s));
+      h += `<tr style="page-break-inside:avoid">${cell(i+1)}${cell(esc(S.val[ek(e, `c${i}-f`)] || "—"), "width:16%")}${t.map((k, j) => cell(txt(k) + `<div style="color:#555D68;font-size:8pt;margin-top:3px">⏱ ${pdfTime(k)}</div>`, `width:24%;background:${["#E8F0F8","#E6F4EC","#FDF1D9"][j]}`)).join("")}</tr>`; }
+    h += `</table><div style="page-break-inside:avoid"><div style="font-weight:bold;margin:8px 0 2px">Conclusion (AO3) <span style="font-weight:normal;color:#555D68;font-size:8.5pt">⏱ ${pdfTime(ek(e, "concl"))}</span></div><div style="border:1px solid #B9C3CF;padding:6px;background:#FDF1D9">${txt(ek(e, "concl"))}</div></div>`;
+    const fk = ek(e, "final"), sp = span(eKeys(e));
+    h += `<div style="font-weight:bold;margin:10px 0 2px">Final essay <span style="font-weight:normal;color:#555D68;font-size:8.5pt">${words(S.val[fk])} words · ⏱ ${pdfTime(fk)} in the essay box · ${fmt(timeOf(eKeys(e)))} on this essay in total${sp ? " · first → last edit: " + sp : ""}</span></div><div style="border:1px solid #0A1B2E;padding:8px;font-family:Georgia,serif;font-size:11pt;line-height:1.55">${txt(fk)}</div>`;
+    const ck = (S.echeck || {})[e.id] || [];
+    if (ck.length) h += `<div style="font-size:8.5pt;color:#555D68;margin-top:4px">Self-check: ${ck.map(([l, y]) => `${y ? "✓" : "○"} ${esc(l)}`).join(" · ")}</div>`;
+    h += `<table ${TB} style="margin-top:8px"><tr>${th("AO1.1 /2")}${th("AO1.2 /2")}${th("AO2.1 /2")}${th("AO3.3 /3")}${th("Level")}${th("Mark /9")}</tr><tr>${cell("&nbsp;<br>&nbsp;")}${cell("")}${cell("")}${cell("")}${cell("")}${cell("")}</tr></table>`;
+  }
+  if (!show.length && !essays.length) h += `<p><i>Nothing answered yet.</i></p>`;
+  return h + `</div>`;
+}
+function fileName(){ const n = (S.name||"student").trim().replace(/[^\w\- ]+/g,"").replace(/\s+/g,"-") || "student"; return `Networks-Practice-${n}.pdf`; }
+function alertBox(msg){ const p = $("#saveStatus"); p.textContent = msg; p.style.color = "#E3C783"; }
+async function printReport(pre){
+  const w = window.open("", "_blank");
+  if (!w){ alertBox("Your browser blocked the print window. Allow pop-ups for this page, or use Ctrl+P."); return; }
+  const html = pre || await reportHtml();
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${fileName().replace(/\.pdf$/,"")}</title><style>@page{size:A4;margin:10mm}body{margin:0}</style></head><body>${html}<script>setTimeout(()=>print(),400)<\/script></body></html>`);
+  w.document.close();
+}
+$("#exportBtn").addEventListener("click", async () => {
+  if (!(S.name||"").trim()){ alertBox("Add your name at the top first, so your teacher knows whose work this is."); $("#stuName").focus(); return; }
+  const btn = $("#exportBtn"); btn.disabled = true; btn.textContent = "Making your PDF…";
+  const html = await reportHtml();
+  const host = document.createElement("div"); host.style.cssText = "position:fixed;left:-10000px;top:0;width:190mm;background:#fff"; host.innerHTML = html; document.body.appendChild(host);
+  try {
+    if (!window.html2pdf) throw new Error("no html2pdf");
+    await html2pdf().set({margin:[8,8,10,8], filename:fileName(), image:{type:"jpeg",quality:.95}, html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff"}, jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}, pagebreak:{mode:["css","avoid-all"]}}).from(host.firstElementChild).save();
+  } catch(err){ await printReport(html); }
+  host.remove(); btn.disabled = false; btn.textContent = "⬇ Export to PDF";
+});
+$("#printBtn").addEventListener("click", () => printReport());
+$("#wipeBtn").addEventListener("click", () => { if (confirm("Clear every answer, essay and recorded time on this page? This cannot be undone.")) { try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); } });
+
+/* ------------------------------------------------------------------ start */
+buildQs(); applyTopic(); renderPick(); buildEssay(); wire($("#qs"));
+$("#stuName").value = S.name || ""; $("#stuClass").value = S.cls || "";
+$("#stuName").addEventListener("input", e => { S.name = e.target.value; save(); });
+$("#stuClass").addEventListener("input", e => { S.cls = e.target.value; save(); });
+paintTimes();
+if (params.get("part") === "essay" || params.get("essay")) setTimeout(() => $("#partB").scrollIntoView(), 50);
+</script>
+</body>
+</html>
