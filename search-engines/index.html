@@ -312,6 +312,716 @@ const d = DIAGRAMS[key](); NB.push({id, key, title, steps: d.steps});
 return `<div class="nb" id="nb-${id}"><div class="nbfig"><div class="nbsvg">${d.svg}</div>`
 + `<div class="nbctl"><button data-nb="${id}" data-act="prev" aria-label="Previous step">◀</button><button class="pri" data-nb="${id}" data-act="play">▶ Play</button><button data-nb="${id}" data-act="next">Step ▶</button><button data-nb="${id}" data-act="all">Show all</button><span class="nbstep" id="nbs-${id}"></span></div>`
 + `<p class="nbcap" id="nbc-${id}"></p></div>`
++ `<div class="nbnotes"><h3>✎ My notes · ${title}</h3><ul>${prompts.map(p=>`<li>${p}</li>`).join("")}</ul><textarea data-val="nb-${id}" rows="9" placeholder="Copy the keyword definitions from the board, then add your own notes…"></textarea></div></div>`;
+}
+const nbState = {}, nbTimers = {};
+function nbShow(id, st){
+const B = NB.find(b => b.id === id), n = B.steps.length; st = Math.max(0, Math.min(n, st)); nbState[id] = st;
+$$(`#nb-${id} [data-step]`).forEach(g => g.classList.toggle("off", +g.dataset.step > st));
+$("#nbs-"+id).textContent = `STEP ${st} OF ${n}`;
+$("#nbc-"+id).textContent = st ? B.steps[st-1] : "Press Play or Step to build the diagram.";
+}
+document.addEventListener("click", e => {
+const b = e.target.closest("[data-nb]"); if (!b) return;
+const id = b.dataset.nb, a = b.dataset.act, n = NB.find(x => x.id === id).steps.length;
+clearInterval(nbTimers[id]);
+if (a === "prev") nbShow(id, (nbState[id] ?? n) - 1);
+if (a === "next") nbShow(id, (nbState[id] >= n ? 0 : nbState[id] ?? 0) + 1);
+if (a === "all") nbShow(id, n);
+if (a === "play"){ nbShow(id, 1); nbTimers[id] = setInterval(() => { if (nbState[id] >= n) clearInterval(nbTimers[id]); else nbShow(id, nbState[id] + 1); }, 2800); }
+});
+function svgToPng(svgEl, scale = 2){
+return new Promise(res => {
+if (!svgEl) return res(null);
+const c = svgEl.cloneNode(true);
+c.querySelectorAll("[data-step]").forEach(g => { g.removeAttribute("class"); g.setAttribute("opacity", "1"); });
+const vb = (c.getAttribute("viewBox") || "0 0 600 400").split(/\s+/).map(Number);
+c.setAttribute("width", vb[2]); c.setAttribute("height", vb[3]); c.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(c));
+const img = new Image();
+img.onload = () => { const cv = document.createElement("canvas"); cv.width = vb[2] * scale; cv.height = vb[3] * scale; const x = cv.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, cv.width, cv.height); x.scale(scale, scale); x.drawImage(img, 0, 0); res(cv.toDataURL("image/png")); };
+img.onerror = () => res(null);
+img.src = url;
+});
+}
+const DONOW = [
+["dn-0", "You type www.bbc.co.uk. What has to happen before your PC can contact the server?"],
+["dn-1", "Which protocol transfers web pages, and what does its secure version add?"],
+["dn-2", "Why can the packets of one web page arrive out of order?"],
+["dn-3", "What is SQL injection?"]];
+const CRAWLP = ["A web crawler starts from a list of URLs it already knows, called ", ["seed URLs","seed URLs","IP addresses","domain names"], ". It visits each page, copies its ", ["content","content","password","PageRank"], " and follows its ", ["hyperlinks","hyperlinks","packets","search results"], " to find more pages. A page that no other page ", ["links to","links to","links from","searches for"], " may never be found. The words, metadata and links it collects are stored in the ", ["index","index","cache","router"], ". Crawling happens ", ["all the time","all the time","only when you search"], "."];
+const PAGES5 = [["Eltham Robotics Club","Our robot team won the regional competition."],["FIRST LEGO League","A robot competition for school teams."],["Bake Sale","Cakes and biscuits for charity this Friday."],["Python Club","Learn to code a robot in Python."],["School News","Team news, competition results and the bake sale."]];
+const IDXWORDS = [["robot",[1,2,4]],["competition",[1,2,5]],["team(s)",[1,2,5]],["bake",[3,5]],["sale",[3,5]],["python",[4]],["news",[5]],["school",[2]]];
+const STOP = ["our","a","for","this","to","in","the","and"];
+const WHYP = ["Searching a prepared index is much ", ["faster","faster","slower","safer"], " than reading every page after you press Enter. The index records where each word appears, such as in the title or ", ["metadata","metadata","IP address","MAC address"], ", so better matches can be ranked as more ", ["relevant","relevant","secure","popular"], ". Crawlers keep ", ["revisiting","revisiting","deleting","encrypting"], " pages, so new and changed pages are added to the index."];
+const HOWWHY = [["A crawler follows hyperlinks to find pages","How"],["Results come back in a fraction of a second","Why"],["Words and metadata from each page are stored against its URL","How"],["Pages can be ranked by where the search words appear","Why"],["Crawlers revisit pages to pick up changes","How"],["Reading billions of pages after you press Enter would be far too slow","Why"]];
+const VOTEP = ["PageRank treats a link to a page as a ", ["vote","vote","virus","packet"], " for it. A page with more ", ["inbound","inbound","outbound"], " links usually ranks higher. A link from a page with a ", ["high","high","low"], " PageRank is worth more than one from an unknown page. A page’s vote is ", ["split equally","split equally","copied in full","added up"], " between all of its ", ["outbound","outbound","inbound"], " links."];
+const VOTES_ANS = [[4,10,2,0],[10,4,2,0],[4,7,5,0]];
+const FORM = [["PR(A)","the PageRank of page A, the page being worked out"],["T1 … Tn","the pages that link to A"],["C(T)","the number of outbound links on page T"],["d","the damping factor, usually 0.85"],["1 − d","the minimum score every page gets (0.15)"]];
+const FORM_OPTS = FORM.map(f => f[1]).sort();
+const CONVP = ["One pass of the formula over every page is called an ", ["iteration","iteration","index","crawl"], ". At first the scores bounce up and down, then they stop changing: they ", ["converge","converge","crash","reset"], ". In the lesson graph the final order was ", ["C, A, B","C, A, B","A, B, C","A, C, B"], ". The scores always add up to the ", ["number of pages","number of pages","damping factor","number of links"], "."];
+const STAGES = [
+{id:"s1", t:"Crawl: crawlers follow links and copy pages"},
+{id:"s2", t:"Index: words, metadata and links are stored for each page"},
+{id:"s3", t:"PageRank: a score is worked out for each page from the links, by iteration"},
+{id:"s4", t:"Look up: the search words are found in the index to get the matching pages"},
+{id:"s5", t:"Rank: the matching pages are put in order using relevance and PageRank"},
+{id:"s6", t:"Results: the list is shown, best match first"}];
+const STAGE_START = ["s4","s2","s6","s1","s5","s3"];
+// 1 · Do Now
+section("donow", 1, "Do Now", ["⚡ DO NOW","5 MINUTES"], "Last unit: networks. Answer in a sentence each, then correct in a different colour as we go through them.",
+`<div class="notes">` + DONOW.map(([id, q], i) => note(id, `Question ${i+1}`, q, "", 2)).join("") + `</div>`);
+ACTS.push({id:"donow", title:"Do Now"});
+// ===================== SECTION A
+sectionStrip("A", "Indexing: finding and storing pages", "Activities 2 to 5");
+section("crawl", 2, "How a web crawler finds pages", ["✎ MAKE A NOTE"],
+"Step through the diagram as we discuss it and write your own notes. Then complete the paragraph.",
+notesBlock("crawl", "crawl", "web crawlers", ["📖 Copy the definitions of <b>search engine</b> and <b>web crawler</b> from the board.", "Where does a crawler start?", "How does it find new pages?", "Why is ‘Old page’ never found? How could its owner fix that?"])
++ para("crp", CRAWLP) + bar("crp"));
+ACTS.push({id:"crp", title:"Web crawler paragraph", check:()=>checkSelects("crp"), score:()=>scoreSelects("crp")});
+section("index", 3, "What goes into the index", ["✎ MAKE A NOTE"],
+"Step through how the index is built from three pages, and make notes.",
+notesBlock("idx", "index", "the index", ["📖 Copy the definitions of <b>index</b> and <b>metadata</b> from the board.", "What is stored for each word?", "What else is stored about each page (metadata, links)?", "What happens when you search for two words?"]));
+section("build", 4, "Build the index", ["👥 IN PAIRS","5 MINUTES"],
+`Tick every page each word appears on (page text only). Leave out stop words: <i>${STOP.join(", ")}</i>. Treat <i>team</i> and <i>teams</i> as one word. Then search your own index.`,
+`<div class="pages">` + PAGES5.map(([t, x], i) => `<div class="wpage"><b>PAGE ${i+1} · ${t.toUpperCase()}</b><span>${esc(x)}</span></div>`).join("") + `</div>`
++ `<table class="grid idx"><thead><tr><th>Word</th>${PAGES5.map((_, i) => `<th style="text-align:center">P${i+1}</th>`).join("")}</tr></thead><tbody>`
++ IDXWORDS.map(([w], r) => `<tr id="ir-${r}"><td class="word">${w}</td>${PAGES5.map((_, p) => `<td class="ck"><input type="checkbox" data-ck="${r}-${p+1}" aria-label="${w} on page ${p+1}"></td>`).join("")}</tr>`).join("")
++ `</tbody></table>` + bar("idxgrid")
++ `<div class="searchbox"><b>🔍 Search your index</b><input id="qIn" placeholder="type one or more words, e.g. robot team" aria-label="search your index"><button class="btn small" id="qGo">Search</button><div class="searchout" id="qOut"></div></div>`
++ `<div class="embhide"><div class="lab2">Use your index</div><table class="grid"><tbody>`
++ `<tr><td><code>robot competition</code> matches which pages?</td><td>${selectHtml("q-0", "Pages 1 and 2", ["Pages 1 and 2","Pages 1, 2 and 4","Pages 1, 2 and 5","Page 2 only"])}</td></tr>`
++ `<tr><td><code>bake sale</code> matches which pages?</td><td>${selectHtml("q-1", "Pages 3 and 5", ["Page 3 only","Pages 3 and 5","Page 5 only","Pages 1 and 3"])}</td></tr>`
++ `</tbody></table>` + bar("q") + `</div>`
++ `<div class="notes" style="margin-top:12px">` + note("big", "🎯 The big question", "Pages 1 and 2 both match ‘robot competition’. Which should be listed first? How could a computer decide?", "result", 3) + `</div>`);
+ACTS.push({id:"idxgrid", title:"Build the index", check:checkIdx, score:scoreIdx});
+ACTS.push({id:"q", title:"Use your index", check:()=>checkSelects("q"), score:()=>scoreSelects("q")});
+section("why", 5, "Why index pages in advance?", ["✎ MAKE A NOTE","🎯 COLD CALL"],
+"Complete the paragraph. Then sort each statement: is it about <b>how</b> pages are indexed, or <b>why</b> search engines index them?",
+para("whyp", WHYP) + bar("whyp")
++ `<div class="lab2">How or why?</div><table class="grid"><tbody>` + HOWWHY.map(([t, a], i) => `<tr><td>${i+1}. ${esc(t)}</td><td style="width:140px">${selectHtml("hw-"+i, a, ["How","Why"])}</td></tr>`).join("") + `</tbody></table>` + bar("hw")
++ `<div class="notes" style="margin-top:12px">` + note("why-exam", "Exam habit", "In your own words: what is the difference between answering “how are pages indexed?” and “why are pages indexed?”", "", 3) + `</div>`);
+ACTS.push({id:"whyp", title:"Why index paragraph", check:()=>checkSelects("whyp"), score:()=>scoreSelects("whyp")});
+ACTS.push({id:"hw", title:"How or why?", check:()=>checkSelects("hw"), score:()=>scoreSelects("hw")});
+// ===================== SECTION B
+sectionStrip("B", "PageRank: which page comes first?", "Activities 6 to 11");
+section("vote", 6, "A link is a vote", ["✎ MAKE A NOTE","▶ CLICK THROUGH"],
+"Step through the iterations as we discuss them and make notes. Then complete the three rules.",
+notesBlock("votes", "votes", "votes flowing", ["📖 Copy the definitions of <b>PageRank</b>, <b>inbound link</b> and <b>outbound link</b> from the board.", "Why does C jump in iteration 1?", "Why do the scores bounce, and then stop?", "Why does A finish so close to C?"])
++ para("vp", VOTEP) + bar("vp")
++ `<div class="notes" style="margin-top:12px">` + note("analogy", "Your own analogy", "The restaurant recommendation was one analogy. Write your own analogy for PageRank (e.g. references, followers, citations).", "", 3) + `</div>`);
+ACTS.push({id:"vp", title:"Three rules", check:()=>checkSelects("vp"), score:()=>scoreSelects("vp")});
+section("pass", 7, "Pass the votes", ["✂ UNPLUGGED"],
+"Arrows: H→R, H→N, N→R, B→R, R→H. Everyone starts with 4 counters. Each round, give away <b>all</b> your counters, shared equally along your outbound arrows. Record the totals.",
+`<div class="cols2"><div>${diagG2static()}</div><div><table class="grid rec"><thead><tr><th>Round</th><th>H</th><th>R</th><th>N</th><th>B</th></tr></thead><tbody>`
++ `<tr><td class="rowh">0</td><td>4</td><td>4</td><td>4</td><td>4</td></tr>`
++ VOTES_ANS.map((row, r) => `<tr><td class="rowh">${r+1}</td>${row.map((v, c) => `<td><input class="numin" style="width:64px" inputmode="numeric" data-val="pv-${r}${c}" data-num="${v}" aria-label="round ${r+1} ${"HRNB"[c]}"></td>`).join("")}</tr>`).join("")
++ `</tbody></table>` + bar("pv") + `</div></div>`
++ `<div class="notes" style="margin-top:12px">` + note("pass-b", "What happened to Blog, and why?", "Is that fair on a brand-new page? What does real PageRank do about it?", "result", 3) + `</div>`);
+ACTS.push({id:"pv", title:"Pass the votes", check:()=>checkNums("pv"), score:()=>scoreNums("pv")});
+// 8 · PageRank Playground
+section("play", 8, "PageRank Playground", ["⌨ ON THE COMPUTER","3 CHALLENGES"],
+"<b>Click a page</b> to select it, then <b>click another page</b> to add a link to it (click again to remove the link). Press <b>Step</b> to run one iteration of the formula, or <b>Run</b> to keep going until the scores settle. Bigger circle = higher PageRank.",
+`<div class="pg"><div class="pgstage"><svg id="pgSvg" viewBox="0 0 600 400" role="img" aria-label="PageRank playground graph"></svg>`
++ `<div class="pgtools"><button class="pri" id="pgStep">Step ▶</button><button class="pri" id="pgRun">▶▶ Run to settle</button><button id="pgReset">Reset scores to 1</button><button id="pgAdd">+ Add page</button><button id="pgDel">Delete selected</button>`
++ `<select class="blank" id="pgPreset" aria-label="Choose a graph"><option value="lesson">Graph: lesson (A, B, C)</option><option value="school">Graph: school website</option><option value="farm">Graph: link farm</option></select></div>`
++ `<div class="dbar" style="margin-top:8px">Damping factor d <input type="range" id="pgD" min="0.05" max="0.95" step="0.05"><span id="pgDv"></span></div>`
++ `<div class="pgmsg" id="pgMsg"></div></div>`
++ `<div class="pgside"><div class="pgpanel"><h3 id="pgIt">Iteration 0</h3><table id="pgTbl"></table></div><div class="pgpanel"><h3>The formula for the selected page</h3><div class="formula" id="pgF"></div></div></div></div>`
++ `<div class="chal" id="pgChal"></div>`
++ `<div class="notes" style="margin-top:12px">`
++ note("pg-farm", "Link farm", "Choose the link farm graph and run it. X has four inbound links; Y has only one. Which ends with the higher PageRank, and why?", "", 3)
++ note("pg-d", "Damping factor", "On the lesson graph, set d to 0.5 and run it, then 0.95. What happens to the gap between the top and bottom pages? Why?", "", 3)
++ `</div>`);
+ACTS.push({id:"play", title:"PageRank Playground challenges", score:()=>[["c1","c2","c3"].filter(c => S.ch[c]).length, 3]});
+// 9 · the formula
+section("formula", 9, "The PageRank formula", ["✎ MAKE A NOTE"],
+"Copy the formula into your notes. Then match each part of the formula to its meaning.",
+`<div class="defn" style="text-align:center"><div class="tag" style="text-align:left">THE PAGERANK FORMULA · OCR FORM</div><p style="font-size:24px">PR(A) = (1 − d) + d ( PR(T<sub>1</sub>)/C(T<sub>1</sub>) + … + PR(T<sub>n</sub>)/C(T<sub>n</sub>) )</p></div>`
++ `<table class="grid" style="table-layout:fixed"><tbody>` + FORM.map(([s, m], i) => `<tr><td class="rowh" style="width:130px;font-family:Georgia,serif;font-size:20px">${esc(s)}</td><td>${selectHtml("fm-"+i, m, FORM_OPTS)}</td></tr>`).join("") + `</tbody></table>` + bar("fm")
++ `<div class="notes">` + note("kw-damp", "📖 Keyword · damping factor", "Copy the definition from the board.", "", 3) + note("surfer", "The random surfer", "Explain in your own words why every page gets at least 1 − d = 0.15.", "", 3) + `</div>`);
+ACTS.push({id:"fm", title:"Parts of the formula", check:()=>checkSelects("fm"), score:()=>scoreSelects("fm")});
+// 10 · iteration by hand
+section("hand", 10, "One iteration by hand", ["🤝 WE DO","✍ YOU DO","🧮 CALCULATOR"],
+"Every page starts at 1 and d = 0.85. Use the <b>old</b> scores for every page; only switch to the new ones when the whole iteration is finished. Give answers to 3 decimal places.",
+`<div class="lab2">We do · the lesson graph</div><div class="cols2"><div>${diagG1static()}</div><div><table class="grid rec"><thead><tr><th>Page</th><th>Iteration 1</th></tr></thead><tbody>`
++ [["A",1],["B",0.575],["C",1.425]].map(([p, v], i) => `<tr><td class="rowh">${p}</td><td>${numIn("wd-"+i, v)}</td></tr>`).join("") + `</tbody></table>${bar("wd")}</div></div>`
++ `<div class="lab2">You do · the school website (same graph as Pass the votes)</div><div class="cols2"><div>${diagG2static()}</div><div><table class="grid rec"><thead><tr><th>Page</th><th>Iteration 1</th><th>COULD: iteration 2</th></tr></thead><tbody>`
++ [["H",1,2.084],["R",2.275,1.191],["N",0.575,0.575],["B",0.15,0.15]].map(([p, v, w], i) => `<tr><td class="rowh">${p}</td><td>${numIn("yd-"+i, v)}</td><td>${numIn("yc-"+i, w)}</td></tr>`).join("") + `</tbody></table>${bar("yd")}</div></div>`
++ `<div class="notes" style="margin-top:12px">` + note("yd-work", "Show your working for R", "Write the formula with the numbers in, e.g. PR(R) = 0.15 + 0.85 × ( … ).", "", 3) + `</div>`);
+ACTS.push({id:"wd", title:"We do: iteration 1", check:()=>checkNums("wd"), score:()=>scoreNums("wd")});
+ACTS.push({id:"yd", title:"You do: iteration 1", check:()=>{ const a = checkNums("yd"), b = checkNums("yc"), f = $$('input[data-val^="yc-"]').filter(i => i.value.trim()).length; return [a[0]+b[0], a[1]+f]; }, score:()=>scoreNums("yd")});
+ACTS.push({id:"yc", title:"COULD: iteration 2", score:()=>scoreNums("yc"), could:true});
+// 11 · settle and cheat
+section("cheat", 11, "Keep going until it settles · Can you cheat PageRank?", ["✎ MAKE A NOTE","🗣 TALK PARTNER"],
+"Complete the paragraph, then answer the three questions from the slide.",
+note("kw-iter", "📖 Keyword · iteration", "Copy the definition from the board.", "", 3)
++ para("cv", CONVP) + bar("cv")
++ `<div class="notes" style="margin-top:12px">`
++ note("ch-0", "🕸 Link farms", "Why don’t 1,000 brand-new pages all linking to one site help it much?", "", 3)
++ note("ch-1", "🧩 One factor of many", "Why don’t search engines rank pages by PageRank alone?", "", 3)
++ note("ch-2", "🌱 New pages", "How can a new page with excellent content get noticed and ranked?", "", 3) + `</div>`);
+ACTS.push({id:"cv", title:"Converging paragraph", check:()=>checkSelects("cv"), score:()=>scoreSelects("cv")});
+// ===================== PUT IT TOGETHER
+sectionStrip("★", "Put it together", "Activities 12 to 14");
+section("together", 12, "From crawl to results page", ["ORDER THE STEPS"],
+"Use ▲ and ▼ to put the six stages in order. Which ones happen before anyone searches?",
+`<ol class="order" id="stList"></ol>` + bar("stages")
++ `<div class="notes" style="margin-top:12px">` + note("onesent", "In one sentence", "What does the index decide, and what does PageRank decide?", "result", 2) + `</div>`);
+ACTS.push({id:"stages", title:"Crawl to results order", check:checkStages, score:()=>{ const o = S.order.st || STAGE_START; return [o.filter((id, i) => STAGES[i].id === id).length, 6]; }});
+section("exit", 13, "Exit ticket: six marks", ["★ PLENARY","ON YOUR OWN"],
+"Answer in silence. Then mark your answers when they go up on the board.",
+`<div class="notes">` + note("ex-1", "1. State what a web crawler does. [1]", "", "", 2)
++ note("ex-2", "2. Explain why a search engine indexes pages in advance. [2]", "", "", 3) + `</div>`
++ `<div class="note" style="margin-top:14px"><h3>3. Calculate PR(P) [2]</h3><p class="hint">Page P has inbound links from Q (PageRank 2.0, 4 outbound links) and R (PageRank 1.0, 1 outbound link). d = 0.85.</p><textarea data-val="ex-3w" rows="2" placeholder="Working"></textarea><div class="bar">PR(P) = ${numIn("ex3-0", 1.425)}<button class="btn small" data-check="ex3">Check</button><span class="fb" id="fb-ex3"></span></div></div>`
++ `<div class="notes" style="margin-top:14px">` + note("ex-4", "4. Give one reason a page with many inbound links may still have a low PageRank. [1]", "", "", 2) + `</div>`);
+ACTS.push({id:"ex3", title:"Exit ticket Q3 (calculation)", check:()=>checkNums("ex3"), score:()=>scoreNums("ex3")});
+section("hwk", 14, "Homework", ["🏠 HOMEWORK"],
+"Due next lesson. Finish it here, export again and resubmit on Teams.",
+`<div class="notes">` + note("hw-6", "Exam question [6]", "A school opens a new website for its robotics club. When people search for “Eltham robotics club”, the site does not appear on the first page of results. Explain how a search engine indexes web pages and how PageRank is used to rank them, and suggest how the club could improve its position in the results. Plan it with two headings: Indexing and PageRank. Use at least four keywords.", "", 12) + `</div>`
++ `<div class="note" style="margin-top:14px"><h3>Stretch</h3><p class="hint">Use your iteration 2 answers from activity 10. Which page is top after iteration 2? ${selectHtml("st-0", "H", ["H","R","N","B"])} Why has it changed since iteration 1?</p><textarea data-val="st-why" rows="3"></textarea></div>`);
+const fin = document.createElement("section"); fin.className = "finish";
+fin.innerHTML = `<h2>Finished? Export your workbook</h2><p>Make sure your name is at the top. <b>Export to PDF</b> downloads a file with all your answers, your notes, the diagrams and your playground graph. Attach it to the Teams assignment and hand in.</p><div class="bar"><button class="btn gold" id="exportBtn">⬇ Export to PDF</button><button class="btn ghostb" id="printBtn" style="background:transparent;color:#fff;border-color:#fff">Print instead</button><button class="btn ghostb" id="wipeBtn" style="background:transparent;color:#E3C783;border-color:#E3C783">Clear everything</button></div><p class="status" id="saveStatus" style="color:#D7E3EF;margin-top:10px">Your answers save on this device as you work.</p>`;
+$("#main").appendChild(fin);
+function rowTicks(r){ return PAGES5.map((_, p) => !!S.ck[`${r}-${p+1}`]); }
+function rowRight(r){ const want = IDXWORDS[r][1]; return rowTicks(r).every((t, p) => t === want.includes(p+1)); }
+function rowTouched(r){ return rowTicks(r).some(Boolean); }
+function checkIdx(){ let ok = 0; IDXWORDS.forEach((_, r) => { const tr = $("#ir-"+r); tr.classList.remove("right","wrong"); if (!rowTouched(r)) return; const k = rowRight(r); tr.classList.add(k?"right":"wrong"); if (k) ok++; }); return [ok, IDXWORDS.length]; }
+function scoreIdx(){ return [IDXWORDS.filter((_, r) => rowRight(r)).length, IDXWORDS.length]; }
+$$("input[data-ck]").forEach(c => { c.checked = !!S.ck[c.dataset.ck]; c.addEventListener("change", () => { S.ck[c.dataset.ck] = c.checked; c.closest("tr").classList.remove("right","wrong"); $("#fb-idxgrid").textContent = ""; save(); }); });
+function runQuery(){
+const q = $("#qIn").value.toLowerCase().split(/[^a-z]+/).filter(Boolean), out = $("#qOut");
+if (!q.length){ out.textContent = ""; return; }
+const sets = [], skipped = [], unknown = [];
+q.forEach(w => {
+if (STOP.includes(w)){ skipped.push(w); return; }
+const base = w.replace(/s$/, "");
+const r = IDXWORDS.findIndex(([x]) => x.replace("(s)", "") === base || x === w);
+if (r < 0){ unknown.push(w); sets.push([]); return; }
+sets.push(PAGES5.map((_, p) => p+1).filter(p => S.ck[`${r}-${p}`]));
+});
+const hit = sets.length ? sets.reduce((a, b) => a.filter(x => b.includes(x))) : [];
+out.innerHTML = (sets.length ? `Your index says: <b>${hit.length ? "page" + (hit.length > 1 ? "s " : " ") + hit.join(", ") : "no pages"}</b>` : "")
++ (skipped.length ? ` · ignored stop words: ${esc(skipped.join(", "))}` : "")
++ (unknown.length ? ` · not in your table: ${esc(unknown.join(", "))}` : "");
+}
+$("#qGo").addEventListener("click", runQuery);
+$("#qIn").addEventListener("keydown", e => { if (e.key === "Enter") runQuery(); });
+function renderStages(){
+const order = S.order.st || STAGE_START.slice();
+$("#stList").innerHTML = order.map(id => `<li data-st="${id}"><span class="txt">${esc(STAGES.find(s => s.id === id).t)}</span><button aria-label="Move up" data-mv="-1">▲</button><button aria-label="Move down" data-mv="1">▼</button></li>`).join("");
+}
+function checkStages(){ let k = 0; $$("#stList li").forEach((li, i) => { li.classList.remove("right","wrong"); const r = STAGES[i].id === li.dataset.st; li.classList.add(r?"right":"wrong"); if (r) k++; }); return [k, 6]; }
+$("#stList").addEventListener("click", e => {
+const b = e.target.closest("button[data-mv]"); if (!b) return;
+const li = b.closest("li"), dir = +b.dataset.mv;
+if (dir < 0 && li.previousElementSibling) li.parentNode.insertBefore(li, li.previousElementSibling);
+if (dir > 0 && li.nextElementSibling) li.parentNode.insertBefore(li.nextElementSibling, li);
+S.order.st = $$("#stList li").map(l => l.dataset.st); save(); $$("#stList li").forEach(l => l.classList.remove("right","wrong")); $("#fb-stages").textContent = "";
+});
+const PRESETS = {
+lesson: {nodes:[["A",150,100],["B",450,100],["C",300,320]], links:["A>B","A>C","B>C","C>A"]},
+school: {nodes:[["H",150,100],["R",450,100],["N",150,310],["B",450,310]], links:["H>R","H>N","N>R","B>R","R>H"]},
+farm: {nodes:[["P",300,58],["Q",110,140],["R",490,140],["Y",490,300],["X",220,270],["F1",60,250],["F2",80,365],["F3",230,370],["F4",370,350]],
+links:["Q>P","R>P","P>Y","P>R","Y>P","F1>X","F2>X","F3>X","F4>X","X>Q"]}};
+function pgLoad(name){ const P = PRESETS[name]; S.pg = {preset:name, nodes:P.nodes.map(([id,x,y]) => ({id,x,y})), links:P.links.slice(), d:S.pg?.d ?? 0.85}; pgResetScores(); }
+let PR = {}, IT = 0, SEL = null, RUN = null;
+if (!S.pg) pgLoad("lesson"); else pgResetScores();
+function pgResetScores(){ PR = {}; S.pg.nodes.forEach(n => PR[n.id] = 1); IT = 0; }
+const outs = id => S.pg.links.filter(l => l.split(">")[0] === id).map(l => l.split(">")[1]);
+const ins = id => S.pg.links.filter(l => l.split(">")[1] === id).map(l => l.split(">")[0]);
+function pgIterate(pr, d){ const nx = {}; S.pg.nodes.forEach(n => { nx[n.id] = (1 - d) + d * ins(n.id).reduce((s, t) => s + pr[t] / outs(t).length, 0); }); return nx; }
+function pgConverged(){ let pr = {}; S.pg.nodes.forEach(n => pr[n.id] = 1); for (let i = 0; i < 400; i++) pr = pgIterate(pr, S.pg.d); return pr; }
+const rad = v => Math.min(46, 18 + 13 * Math.sqrt(Math.max(v, 0)));
+function pgDraw(){
+const nd = id => S.pg.nodes.find(n => n.id === id);
+let s = `<defs>${mk("pgM", DG.navy5)}${mk("pgMs", DG.gold5)}</defs>`;
+S.pg.links.forEach(l => {
+const [a, b] = l.split(">"), A = nd(a), B = nd(b); if (!A || !B) return;
+let dx = B.x - A.x, dy = B.y - A.y; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+const off = S.pg.links.includes(`${b}>${a}`) ? 8 : 0, px = -dy * off, py = dx * off;
+const ra = rad(PR[a]) + 2, rb = rad(PR[b]) + 4, sel = a === SEL;
+s += `<line x1="${(A.x + dx*ra + px).toFixed(1)}" y1="${(A.y + dy*ra + py).toFixed(1)}" x2="${(B.x - dx*rb + px).toFixed(1)}" y2="${(B.y - dy*rb + py).toFixed(1)}" stroke="${sel ? DG.gold5 : DG.navy5}" stroke-width="${sel ? 4 : 3}" marker-end="url(#${sel ? "pgMs" : "pgM"})"/>`;
+const k = outs(a).length; if (k > 1){ const mx = A.x + (B.x-A.x)*.5 + px*2.2, my = A.y + (B.y-A.y)*.5 + py*2.2; s += `<rect x="${(mx-15).toFixed(1)}" y="${(my-11).toFixed(1)}" width="30" height="20" rx="5" fill="${DG.navy9}"/>` + T(mx.toFixed(1), (my+4).toFixed(1), `1/${k}`, {s:12, w:700, c:DG.gold3}); }
+});
+const top = Math.max(...S.pg.nodes.map(n => PR[n.id]));
+S.pg.nodes.forEach(n => {
+const r = rad(PR[n.id]), sel = n.id === SEL, isTop = IT > 0 && Math.abs(PR[n.id] - top) < 1e-9;
+s += `<g class="node" data-node="${n.id}"><circle cx="${n.x}" cy="${n.y}" r="${r.toFixed(1)}" fill="${sel ? DG.warnbg : isTop ? DG.okbg : "#FFF"}" stroke="${sel ? DG.gold5 : isTop ? DG.ok : DG.navy7}" stroke-width="${sel ? 5 : 3}"/>`
++ T(n.x, n.y - 2, n.id, {s: n.id.length > 1 ? 17 : 22, f:"Georgia,serif", c:DG.navy9}) + T(n.x, n.y + 16, PR[n.id].toFixed(3), {s:13, w:700, c:DG.navy7}) + `</g>`;
+});
+$("#pgSvg").innerHTML = s;
+$("#pgIt").textContent = IT ? `Iteration ${IT}` : "Iteration 0 · every page starts at 1";
+const rows = S.pg.nodes.slice().sort((a, b) => PR[b.id] - PR[a.id]);
+$("#pgTbl").innerHTML = `<tr><th>Page</th><th>Inbound from</th><th>Out</th><th style="text-align:right">PageRank</th></tr>` + rows.map(n => `<tr class="${IT && Math.abs(PR[n.id]-top) < 1e-9 ? "top" : ""}"><td><b>${n.id}</b></td><td>${ins(n.id).join(", ") || "<i>none</i>"}</td><td>${outs(n.id).length}</td><td class="v">${PR[n.id].toFixed(3)}</td></tr>`).join("")
++ `<tr><td colspan="3" style="color:var(--muted)">Total (= number of pages when every page has a link out)</td><td class="v">${Object.values(PR).reduce((a, b) => a + b, 0).toFixed(3)}</td></tr>`;
+const f = SEL || S.pg.nodes[0]?.id, d = S.pg.d;
+if (f){
+const I = ins(f), terms = I.map(t => `PR(${t})/${outs(t).length}`).join(" + "), nums = I.map(t => `${PR[t].toFixed(3)}/${outs(t).length}`).join(" + "), sum = I.reduce((s, t) => s + PR[t] / outs(t).length, 0);
+$("#pgF").innerHTML = I.length
+? `PR(${f}) = (1 − ${d.toFixed(2)}) + ${d.toFixed(2)} × (${terms})<br>= ${(1-d).toFixed(2)} + ${d.toFixed(2)} × (${nums})<br>= ${(1-d).toFixed(2)} + ${d.toFixed(2)} × ${sum.toFixed(3)} = <span class="r">${((1-d) + d*sum).toFixed(3)}</span><br><span style="color:var(--muted);font-family:system-ui">← what ${f} will score in the next iteration</span>`
+: `PR(${f}) = (1 − ${d.toFixed(2)}) + ${d.toFixed(2)} × 0 = <span class="r">${(1-d).toFixed(3)}</span><br><span style="color:var(--muted);font-family:system-ui">${f} has no inbound links, so it only ever gets the minimum.</span>`;
+} else $("#pgF").textContent = "Add a page to start.";
+$("#pgD").value = d; $("#pgDv").textContent = d.toFixed(2); $("#pgPreset").value = S.pg.preset || "";
+pgChallenges();
+}
+function pgMsg(t){ $("#pgMsg").textContent = t; }
+function pgChanged(t){ pgStop(); pgResetScores(); save(); pgDraw(); pgMsg(t + " Scores reset to 1: press Step or Run."); }
+function pgStop(){ if (RUN){ clearInterval(RUN); RUN = null; $("#pgRun").textContent = "▶▶ Run to settle"; } }
+$("#pgSvg").addEventListener("click", e => {
+const g = e.target.closest("[data-node]");
+if (!g){ SEL = null; pgDraw(); pgMsg(""); return; }
+const id = g.dataset.node;
+if (!SEL){ SEL = id; pgDraw(); pgMsg(`${id} selected. Click another page to add or remove a link from ${id}. Click ${id} again to deselect.`); return; }
+if (SEL === id){ SEL = null; pgDraw(); pgMsg(""); return; }
+const l = `${SEL}>${id}`, had = S.pg.links.includes(l);
+S.pg.links = had ? S.pg.links.filter(x => x !== l) : S.pg.links.concat(l); S.pg.preset = "";
+pgChanged(had ? `Link ${SEL} → ${id} removed.` : `Link ${SEL} → ${id} added.`);
+});
+$("#pgStep").addEventListener("click", () => { pgStop(); PR = pgIterate(PR, S.pg.d); IT++; pgDraw(); pgMsg(`Iteration ${IT}: every page recalculated from the iteration ${IT-1} scores.`); });
+$("#pgRun").addEventListener("click", () => {
+if (RUN){ pgStop(); return; }
+$("#pgRun").textContent = "■ Stop";
+RUN = setInterval(() => {
+const nx = pgIterate(PR, S.pg.d), ch = Math.max(...S.pg.nodes.map(n => Math.abs(nx[n.id] - PR[n.id])), 0);
+PR = nx; IT++; pgDraw();
+if (ch < 0.0001 || IT > 300){ pgStop(); pgMsg(`Settled after ${IT} iterations: no score changed by more than 0.0001.`); }
+else pgMsg(`Iteration ${IT}… biggest change ${ch.toFixed(4)}`);
+}, 350);
+});
+$("#pgReset").addEventListener("click", () => { pgStop(); pgResetScores(); pgDraw(); pgMsg("Scores reset to 1."); });
+$("#pgAdd").addEventListener("click", () => {
+if (S.pg.nodes.length >= 10){ pgMsg("Ten pages is the limit."); return; }
+const used = S.pg.nodes.map(n => n.id), id = "ABCDEFGHJKLMNPQRSTUVWXYZ".split("").find(c => !used.includes(c));
+const spots = [[300,200],[80,200],[520,200],[300,370],[300,40],[80,60],[520,60],[80,360],[520,360],[200,200],[400,200]];
+const free = spots.find(([x, y]) => S.pg.nodes.every(n => Math.hypot(n.x - x, n.y - y) > 90)) || [300, 200];
+S.pg.nodes.push({id, x:free[0], y:free[1]}); S.pg.preset = ""; SEL = id; pgChanged(`Page ${id} added and selected: click a page to link ${id} to it.`);
+});
+$("#pgDel").addEventListener("click", () => {
+if (!SEL){ pgMsg("Select a page first."); return; }
+const id = SEL; S.pg.nodes = S.pg.nodes.filter(n => n.id !== id); S.pg.links = S.pg.links.filter(l => !l.split(">").includes(id)); S.pg.preset = ""; SEL = null; pgChanged(`Page ${id} deleted.`);
+});
+$("#pgPreset").addEventListener("change", e => { if (!e.target.value) return; SEL = null; pgStop(); pgLoad(e.target.value); save(); pgDraw(); pgMsg("Graph loaded. Press Step or Run."); });
+$("#pgD").addEventListener("input", e => { S.pg.d = +e.target.value; pgChanged(`d = ${S.pg.d.toFixed(2)}.`); });
+const CHAL = [
+{id:"c1", t:"Rescue the Blog", d:"Load the school website. Add <b>one</b> link so that Blog (B) settles above 0.5.", test:(pr) => ["H","R","N","B"].every(k => k in pr) && S.pg.nodes.length === 4 && pr.B > 0.5},
+{id:"c2", t:"News on top", d:"On the school website (H, R, N, B), change the links so that News (N) settles as the top page.", test:(pr) => ["H","R","N","B"].every(k => k in pr) && S.pg.nodes.length === 4 && Object.entries(pr).every(([k, v]) => k === "N" || v < pr.N - 0.001)},
+{id:"c3", t:"Everyone equal", d:"Build any graph with three or more pages where every page settles at the <b>same</b> PageRank.", test:(pr) => { const v = Object.values(pr); return v.length >= 3 && S.pg.nodes.every(n => ins(n.id).length) && Math.max(...v) - Math.min(...v) < 0.005; }}];
+function pgChallenges(){
+const pr = pgConverged();
+CHAL.forEach(c => { if (!S.ch[c.id] && c.test(pr)){ S.ch[c.id] = {links:S.pg.links.join(", "), d:S.pg.d, vals:Object.entries(pr).map(([k, v]) => `${k} ${v.toFixed(3)}`).join(", ")}; save(); } });
+$("#pgChal").innerHTML = CHAL.map(c => `<div class="${S.ch[c.id] ? "done" : ""}"><span class="ct">CHALLENGE · ${c.t.toUpperCase()}</span>${c.d}<div class="st">${S.ch[c.id] ? "✓ Done: links " + esc(S.ch[c.id].links) : "Not done yet"}</div></div>`).join("");
+}
+renderStages();
+$$("[data-val]").forEach(el => {
+const k = el.dataset.val;
+if (S.val[k] != null) el.value = S.val[k];
+const upd = () => { S.val[k] = el.value; el.classList.remove("right","wrong"); save(); };
+el.addEventListener("input", upd); el.addEventListener("change", upd);
+});
+$("#stuName").value = S.name || ""; $("#stuClass").value = S.cls || "";
+$("#stuName").addEventListener("input", e => { S.name = e.target.value; save(); });
+$("#stuClass").addEventListener("input", e => { S.cls = e.target.value; save(); });
+NB.forEach(b => nbShow(b.id, b.steps.length));
+pgDraw();
+const RESET_PREFIX = {crp:["crp"], q:["q"], whyp:["whyp"], hw:["hw"], vp:["vp"], pv:["pv"], fm:["fm"], wd:["wd"], yd:["yd","yc"], cv:["cv"], ex3:["ex3"]};
+document.addEventListener("click", e => {
+const c = e.target.closest("[data-check]"), r = e.target.closest("[data-reset]");
+if (c){ const a = ACTS.find(x => x.id === c.dataset.check); feedback(a.id, a.check()); }
+if (r){
+const id = r.dataset.reset;
+if (id === "idxgrid"){ S.ck = {}; $$("input[data-ck]").forEach(x => x.checked = false); $$("table.idx tr").forEach(t => t.classList.remove("right","wrong")); }
+if (id === "stages"){ delete S.order.st; renderStages(); }
+(RESET_PREFIX[id] || []).forEach(p => $$(`[data-val^="${p}-"]`).forEach(s => { s.value = ""; s.classList.remove("right","wrong"); delete S.val[s.dataset.val]; }));
+save(); const fb = $("#fb-"+id); if (fb) fb.textContent = "";
+}
+});
+function totals(){ return ACTS.filter(a => a.score && !a.could).reduce((s, a) => { const r = a.score(); return [s[0]+r[0], s[1]+r[1]]; }, [0,0]); }
+function updateProgress(){ const t = totals(); const filled = Object.values(S.val).filter(v => String(v).trim()).length; $("#progress").innerHTML = `Auto-marked so far: <b>${t[0]} / ${t[1]}</b> · ${filled} answers written`; }
+updateProgress();
+async function reportHtml(){
+const imgs = {};
+for (const b of NB) imgs[b.id] = await svgToPng($(`#nb-${b.id} svg`));
+const sel = SEL; SEL = null; pgDraw(); imgs.pg = await svgToPng($("#pgSvg")); SEL = sel; pgDraw();
+const name = (S.name||"").trim() || "(no name)", cls = (S.cls||"").trim();
+const st = "font-family:Arial,sans-serif;color:#1A1D21;font-size:10.5pt;line-height:1.4";
+const h2 = t => `<h2 style="font-family:Georgia,serif;font-weight:400;color:#0A1B2E;font-size:15pt;margin:12px 0 6px;border-bottom:2px solid #C89B3C;padding-bottom:3px">${t}</h2>`;
+const sec = t => `<div style="page-break-after:avoid;background:#0A1B2E;color:#E3C783;font-family:Georgia,serif;font-size:13pt;padding:5px 10px;border-radius:5px;margin-top:12px">${t}</div>`;
+const score = id => { const r = ACTS.find(x => x.id === id).score(); return `<div style="font-size:9pt;color:#555D68;margin:2px 0 4px">Auto-marked: <b>${r[0]} / ${r[1]}</b></div>`; };
+const cell = t => `<td style="border:1px solid #B9C3CF;padding:4px 6px;vertical-align:top">${t}</td>`;
+const th = t => `<th style="border:1px solid #0A1B2E;background:#0A1B2E;color:#fff;padding:4px 6px;text-align:left;font-size:9.5pt">${t}</th>`;
+const OK = '<span style="color:#1F7A4D">✓</span>', NO = '<span style="color:#B3261E">✗</span>', BL = '<span style="color:#B3261E">(blank)</span>';
+const mark = (got, ans) => !got ? BL : `${esc(got)} ${got === ans ? OK : NO}`;
+const nmark = (k, ans) => { const v = S.val[k]; return v && String(v).trim() ? `${esc(v)} ${numOk(v, ans) ? OK : NO}` : BL; };
+const txt = k => { const v = (S.val[k]||"").trim(); return v ? esc(v).replace(/\n/g, "<br>") : `<span style="color:#B3261E">(not written)</span>`; };
+const box = (t, k) => `<div style="margin-top:6px;page-break-inside:avoid"><b>${t}</b><div style="border:1px solid #B9C3CF;padding:6px;min-height:18px">${txt(k)}</div></div>`;
+const paraTxt = (prefix, parts) => { let k = 0; return parts.map(p => typeof p === "string" ? esc(p) : `<b><u>${(() => { const v = S.val[`${prefix}-${k++}`] || ""; return v ? esc(v) + " " + (v === p[0] ? OK : NO) : '<span style="color:#B3261E">____</span>'; })()}</u></b>`).join(""); };
+const nbBlock = id => { const B = NB.find(b => b.id === id); return `<div style="page-break-inside:avoid;margin:6px 0">${imgs[id] ? `<img src="${imgs[id]}" style="width:100%;max-width:150mm;border:1px solid #E3E8EF;border-radius:4px">` : ""}<div style="font-size:8.5pt;color:#555D68;margin:3px 0 4px">${B.steps.map((t, i) => `${i+1}. ${esc(t)}`).join(" ")}</div>${box("My notes · " + B.title, "nb-"+id)}</div>`; };
+let h = `<div style="${st};padding:4mm">`;
+h += `<div style="background:#0A1B2E;color:#fff;padding:10px 14px;border-radius:6px"><div style="font-size:9pt;letter-spacing:.1em;color:#E3C783;font-weight:bold">YEAR 12 · OCR H446 1.3.4 · WEB TECHNOLOGIES · WORKBOOK</div><div style="font-family:Georgia,serif;font-size:20pt">Search Engines: Indexing and PageRank</div><div style="font-size:11pt;color:#D7E3EF">${esc(name)}${cls ? " · " + esc(cls) : ""} · exported ${new Date().toLocaleString("en-GB")}</div></div>`;
+const auto = ACTS.filter(a => a.score), tot = totals();
+h += `<table style="border-collapse:collapse;width:100%;margin-top:8px;font-size:9.5pt"><tr>${th("Activity")}${th("Auto-marked")}</tr>${auto.map(a => { const r = a.score(); return `<tr>${cell(a.title + (a.could ? " (COULD, not in total)" : ""))}${cell(r[0] + " / " + r[1])}</tr>`; }).join("")}<tr>${cell("<b>Total</b>")}${cell(`<b>${tot[0]} / ${tot[1]}</b>`)}</tr></table>`;
+h += `<div style="page-break-inside:avoid">${h2("1 · Do Now")}${DONOW.map(([id, q], i) => box(`${i+1}. ${esc(q)}`, id)).join("")}</div>`;
+h += sec("Section A · Indexing");
+h += `<div>${h2("2 · How a web crawler finds pages")}${nbBlock("crawl")}${score("crp")}<p>${paraTxt("crp", CRAWLP)}</p></div>`;
+h += `<div>${h2("3 · What goes into the index")}${nbBlock("idx")}</div>`;
+h += `<div style="page-break-inside:avoid">${h2("4 · Build the index")}${score("idxgrid")}<table style="border-collapse:collapse;width:100%;font-size:9.5pt"><tr>${th("Word")}${PAGES5.map((_, i) => th("P" + (i+1))).join("")}${th("")}</tr>${IDXWORDS.map(([w], r) => `<tr>${cell("<b>" + w + "</b>")}${rowTicks(r).map(t => cell(t ? "✔" : "")).join("")}${cell(rowRight(r) ? OK : NO)}</tr>`).join("")}</table>`
++ `${score("q")}<div>robot competition → ${mark(S.val["q-0"], "Pages 1 and 2")} &nbsp; · &nbsp; bake sale → ${mark(S.val["q-1"], "Pages 3 and 5")}</div>${box("The big question: which page first?", "big")}</div>`;
+h += `<div style="page-break-inside:avoid">${h2("5 · Why index pages in advance?")}${score("whyp")}<p>${paraTxt("whyp", WHYP)}</p>${score("hw")}<table style="border-collapse:collapse;width:100%;font-size:9.5pt">${HOWWHY.map(([t, a], i) => `<tr>${cell(esc(t))}${cell(mark(S.val["hw-"+i], a))}</tr>`).join("")}</table>${box("Exam habit: how vs why", "why-exam")}</div>`;
+h += sec("Section B · PageRank");
+h += `<div>${h2("6 · A link is a vote")}${nbBlock("votes")}${score("vp")}<p>${paraTxt("vp", VOTEP)}</p>${box("My analogy", "analogy")}</div>`;
+h += `<div style="page-break-inside:avoid">${h2("7 · Pass the votes")}${score("pv")}<table style="border-collapse:collapse;width:60%;font-size:9.5pt"><tr>${th("Round")}${["H","R","N","B"].map(th).join("")}</tr>${VOTES_ANS.map((row, r) => `<tr>${cell(r+1)}${row.map((v, c) => cell(nmark(`pv-${r}${c}`, v))).join("")}</tr>`).join("")}</table>${box("What happened to Blog, and why?", "pass-b")}</div>`;
+h += `<div style="page-break-inside:avoid">${h2("8 · PageRank Playground")}${score("play")}${imgs.pg ? `<img src="${imgs.pg}" style="width:100%;max-width:120mm;border:1px solid #E3E8EF;border-radius:4px">` : ""}<div style="font-size:9pt;color:#555D68">Graph at export: ${esc(S.pg.links.join(", ") || "no links")} · d = ${S.pg.d.toFixed(2)} · iteration ${IT}</div>`
++ `<table style="border-collapse:collapse;width:100%;font-size:9.5pt;margin-top:4px">${CHAL.map(c => `<tr>${cell("<b>" + c.t + "</b>")}${cell(S.ch[c.id] ? `${OK} links: ${esc(S.ch[c.id].links)} · d ${S.ch[c.id].d} · settled: ${esc(S.ch[c.id].vals)}` : '<span style="color:#B3261E">not done</span>')}</tr>`).join("")}</table>${box("Link farm", "pg-farm")}${box("Damping factor", "pg-d")}</div>`;
+h += `<div style="page-break-inside:avoid">${h2("9 · The PageRank formula")}<div style="font-family:Georgia,serif;font-size:13pt">PR(A) = (1 − d) + d ( PR(T1)/C(T1) + … + PR(Tn)/C(Tn) )</div>${score("fm")}<table style="border-collapse:collapse;width:100%;font-size:9.5pt">${FORM.map(([s, m], i) => `<tr>${cell("<b>" + esc(s) + "</b>")}${cell(mark(S.val["fm-"+i], m))}</tr>`).join("")}</table>${box("Keyword · damping factor", "kw-damp")}${box("The random surfer", "surfer")}</div>`;
+h += `<div style="page-break-inside:avoid">${h2("10 · One iteration by hand")}${score("wd")}<div>We do: A ${nmark("wd-0", 1)} · B ${nmark("wd-1", 0.575)} · C ${nmark("wd-2", 1.425)}</div>${score("yd")}<table style="border-collapse:collapse;width:70%;font-size:9.5pt"><tr>${th("Page")}${th("Iteration 1")}${th("COULD: iteration 2")}</tr>${[["H",1,2.084],["R",2.275,1.191],["N",0.575,0.575],["B",0.15,0.15]].map(([p, v, w], i) => `<tr>${cell(p)}${cell(nmark("yd-"+i, v))}${cell(nmark("yc-"+i, w))}</tr>`).join("")}</table>${box("Working for R", "yd-work")}</div>`;
+h += `<div style="page-break-inside:avoid">${h2("11 · Keep going until it settles · Can you cheat PageRank?")}${score("cv")}${box("Keyword · iteration", "kw-iter")}<p>${paraTxt("cv", CONVP)}</p>${box("Link farms", "ch-0")}${box("One factor of many", "ch-1")}${box("New pages", "ch-2")}</div>`;
+const so = S.order.st || STAGE_START;
+h += sec("Put it together");
+h += `<div style="page-break-inside:avoid">${h2("12 · From crawl to results page")}${score("stages")}<ol style="margin:0 0 6px 18px;padding:0;font-size:9.5pt">${so.map((id, i) => `<li>${esc(STAGES.find(s => s.id === id).t)} ${STAGES[i].id === id ? OK : NO}</li>`).join("")}</ol>${box("In one sentence", "onesent")}</div>`;
+h += `<div style="page-break-inside:avoid">${h2("13 · Exit ticket")}${box("1. State what a web crawler does. [1]", "ex-1")}${box("2. Explain why a search engine indexes pages in advance. [2]", "ex-2")}${box("3. Working", "ex-3w")}<div>PR(P) = ${nmark("ex3-0", 1.425)}</div>${box("4. Why might a page with many inbound links still rank low? [1]", "ex-4")}<div style="margin-top:6px;font-size:10pt"><b>Mark /6:</b> ______</div></div>`;
+h += `<div style="page-break-inside:avoid">${h2("14 · Homework")}${box("Exam question [6]", "hw-6")}<div style="margin-top:6px">Stretch: top page after iteration 2 → ${mark(S.val["st-0"], "H")}</div>${box("Why has it changed?", "st-why")}<div style="margin-top:6px;font-size:10pt"><b>Teacher mark /6:</b> ______</div></div>`;
+return h + `</div>`;
+}
+function fileName(){ const n = (S.name||"student").trim().replace(/[^\w\- ]+/g, "").replace(/\s+/g, "-") || "student"; return `Search-Engines-Workbook-${n}.pdf`; }
+function alertBox(msg){ const p = $("#saveStatus"); p.textContent = msg; p.style.color = "#E3C783"; }
+$("#exportBtn").addEventListener("click", async () => {
+if (!(S.name||"").trim()){ alertBox("Add your name at the top first, so your teacher knows whose workbook this is."); $("#stuName").focus(); return; }
+const btn = $("#exportBtn"); btn.disabled = true; btn.textContent = "Making your PDF…";
+const html = await reportHtml();
+const host = document.createElement("div"); host.style.cssText = "position:fixed;left:-10000px;top:0;width:190mm;background:#fff"; host.innerHTML = html; document.body.appendChild(host);
+try {
+if (!window.html2pdf) throw new Error("no html2pdf");
+await html2pdf().set({margin:[8,8,10,8], filename:fileName(), image:{type:"jpeg", quality:.95}, html2canvas:{scale:2, useCORS:true, backgroundColor:"#ffffff"}, jsPDF:{unit:"mm", format:"a4", orientation:"portrait"}, pagebreak:{mode:["css","avoid-all"]}}).from(host.firstElementChild).save();
+} catch(err){ await printReport(html); }
+host.remove(); btn.disabled = false; btn.textContent = "⬇ Export to PDF";
+});
+async function printReport(pre){
+const w = window.open("", "_blank");
+if (!w){ alertBox("Your browser blocked the print window. Allow pop-ups for this page, or use Ctrl+P."); return; }
+const html = pre || await reportHtml();
+w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${fileName().replace(/\.pdf$/, "")}</title><style>@page{size:A4;margin:10mm}body{margin:0}</style></head><body>${html}<script>setTimeout(()=>print(),400)<\/script></body></html>`);
+w.document.close();
+}
+$("#printBtn").addEventListener("click", () => printReport());
+$("#wipeBtn").addEventListener("click", () => { if (confirm("Clear every answer in this workbook? This cannot be undone.")){ try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); } });
+const emb = new URLSearchParams(location.search).get("embed");
+if (emb && document.getElementById(emb)){ document.body.classList.add("embed"); document.getElementById(emb).classList.add("shown"); }
+</script>
+</body></html><!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search Engines: Indexing and PageRank · Workbook</title>
+<style>
+:root{
+--navy9:#0A1B2E;--navy7:#163351;--navy5:#2A5A8C;--navy1:#D7E3EF;
+--gold5:#C89B3C;--gold3:#E3C783;--gold7:#8A6520;
+--paper:#F7F8FA;--ink:#1A1D21;--muted:#555D68;--line:#E3E8EF;--frame:#B9C3CF;
+--ok:#1F7A4D;--okbg:#E6F4EC;--bad:#B3261E;--badbg:#FCE9E7;--warn:#8A5A00;--warnbg:#FDF1D9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3{font-family:Georgia,serif;color:var(--navy9);font-weight:400;margin:0}
+a{color:var(--navy5)}
+code{background:var(--navy1);border-radius:4px;padding:0 4px;font-size:.92em}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 80px}
+header.top{background:var(--navy9);color:#fff;padding:22px 0 26px;margin-bottom:22px}
+header.top .wrap{padding-bottom:0}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--gold3);text-transform:uppercase}
+header.top h1{color:#fff;font-size:clamp(30px,5vw,46px);margin:6px 0 10px}
+header.top p{color:var(--navy1);margin:0;max-width:780px}
+.idrow{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+.idrow label{display:flex;flex-direction:column;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--gold3)}
+.idrow input{margin-top:4px;padding:8px 10px;border-radius:8px;border:1px solid var(--navy5);background:var(--navy7);color:#fff;font:inherit;min-width:220px}
+.kwbar{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.kwbar span{background:var(--navy7);color:var(--gold3);border:1px solid var(--navy5);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700}
+.progress{margin-top:14px;font-size:13px;color:var(--navy1)}
+.progress b{color:var(--gold3)}
+section.act{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-bottom:20px}
+section.act>header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+section.act>header h2{font-size:28px;margin-right:6px}
+.num{display:inline-block;min-width:30px;height:30px;border-radius:15px;background:var(--gold5);color:var(--navy9);text-align:center;line-height:30px;font-weight:700;font-size:15px;padding:0 6px}
+.pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:999px;background:var(--gold5);color:var(--navy9)}
+.pill.navy{background:var(--navy9);color:var(--gold3)}
+.pill.blue{background:var(--navy5);color:#fff}
+.howto{color:var(--muted);font-size:15.5px;margin:0 0 12px}
+.kw{background:var(--warnbg);box-shadow:inset 0 -3px 0 var(--gold5);font-weight:700;padding:0 3px;border-radius:3px}
+.defn{border-left:6px solid var(--gold5);background:var(--warnbg);border-radius:8px;padding:10px 14px;margin:0 0 12px}
+.defn .tag{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--warn)}
+.defn p{margin:4px 0 0;font-family:Georgia,serif;font-size:18px}
+.defs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0 14px}
+table.grid{border-collapse:collapse;width:100%}
+table.grid th{background:var(--navy9);color:#fff;text-align:left;padding:8px 10px;font-size:14px;letter-spacing:.03em}
+table.grid td{border-top:1px solid var(--line);padding:6px 8px;vertical-align:middle}
+table.grid td.rowh{font-weight:700;color:var(--navy7)}
+table.grid tr.right td{background:var(--okbg)}
+table.grid tr.wrong td{background:var(--badbg)}
+.para{font-size:18px;line-height:2.1;margin:0 0 10px}
+select.blank{font:inherit;text-overflow:ellipsis;font-weight:700;color:var(--navy9);padding:3px 6px;border-radius:6px;border:2px solid var(--navy5);background:#fff;max-width:100%}
+select.blank.right,input.numin.right{border-color:var(--ok);background:var(--okbg)}
+select.blank.wrong,input.numin.wrong{border-color:var(--bad);background:var(--badbg)}
+input.numin{font:700 17px ui-monospace,Consolas,monospace;width:110px;padding:5px 8px;border-radius:6px;border:2px solid var(--navy5);color:var(--navy9);text-align:center}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.note{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+.note h3{font-family:system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:6px}
+.note .hint{font-size:15px;color:var(--muted);margin:0 0 6px}
+.note.result{background:var(--okbg);border-color:var(--okbg)}
+textarea,input.line{width:100%;font:inherit;font-size:16px;border:1px solid var(--frame);border-radius:8px;padding:8px 10px;background:#FBFCFD;color:var(--ink);resize:vertical}
+textarea{min-height:84px}
+textarea:focus,input:focus,select:focus{outline:3px solid var(--gold3);outline-offset:1px}
+ol.order{list-style:none;margin:0 0 12px;padding:0;counter-reset:s}
+ol.order li{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--navy5);border-radius:10px;padding:8px 10px;margin-bottom:8px}
+ol.order li::before{counter-increment:s;content:counter(s);display:inline-block;min-width:28px;height:28px;border-radius:14px;background:var(--navy9);color:var(--gold3);text-align:center;line-height:28px;font-weight:700}
+ol.order li .txt{flex:1}
+ol.order li button{border:1px solid var(--frame);background:var(--paper);border-radius:6px;width:34px;height:30px;cursor:pointer;font-size:15px}
+ol.order li.right{border-color:var(--ok);background:var(--okbg)}
+ol.order li.wrong{border-color:var(--bad);background:var(--badbg)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+button.btn{font:inherit;font-weight:700;border-radius:8px;padding:8px 16px;cursor:pointer;border:1px solid var(--navy9);background:var(--navy9);color:#fff}
+button.btn.ghostb{background:#fff;color:var(--navy9)}
+button.btn.gold{background:var(--gold5);border-color:var(--gold5);color:var(--navy9)}
+button.btn.small{padding:5px 11px;font-size:14px}
+button.btn:disabled{opacity:.5;cursor:default}
+.fb{font-weight:700}
+.fb.good{color:var(--ok)}.fb.meh{color:var(--warn)}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cols2>div{min-width:0}
+.lab2{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin:16px 0 6px}
+.finish{background:var(--navy9);color:#fff;border-radius:14px;padding:22px}
+.finish h2{color:#fff}
+.finish p{color:var(--navy1)}
+.status{font-size:13px;color:var(--muted)}
+.secstrip{display:flex;gap:14px;align-items:center;background:var(--navy9);color:#fff;border-radius:14px;padding:12px 18px;margin:26px 0 14px}
+.secstrip>span{font-family:Georgia,serif;font-size:34px;color:var(--gold3);line-height:1}
+.secstrip b{display:block;font-family:Georgia,serif;font-weight:400;font-size:24px}
+.secstrip small{color:var(--navy1);font-size:13px;letter-spacing:.06em}
+.nb{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--paper);margin:0 0 14px}
+.nbfig{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;min-width:0}
+.nbfig svg{display:block;width:100%;height:auto}
+.nbfig svg [data-step]{transition:opacity .35s}
+.nbfig svg [data-step].off{opacity:0}
+.nbctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.nbctl button{font:inherit;font-size:13px;font-weight:700;border-radius:7px;padding:5px 10px;border:1px solid var(--navy5);background:#fff;color:var(--navy9);cursor:pointer}
+.nbctl button.pri{background:var(--navy9);color:var(--gold3);border-color:var(--navy9)}
+.nbctl .nbstep{font-size:12px;font-weight:700;color:var(--gold7);letter-spacing:.06em;margin-left:auto}
+.nbcap{font-size:15px;line-height:1.4;margin:6px 2px 0;min-height:44px;color:var(--navy9)}
+.nbnotes{display:flex;flex-direction:column;min-width:0}
+.nbnotes h3{font-family:system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:4px}
+.nbnotes ul{margin:0 0 6px;padding-left:18px;font-size:14px;color:var(--muted)}
+.nbnotes textarea{flex:1;min-height:190px}
+.pages{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px}
+.wpage{background:#fff;border:1px solid var(--line);border-left:6px solid var(--navy5);border-radius:10px;padding:9px 12px}
+.wpage b{display:block;font-size:12.5px;letter-spacing:.06em;color:var(--navy5)}
+.wpage span{font-size:16.5px}
+table.idx td.ck{text-align:center;width:72px}
+table.idx input[type=checkbox]{width:22px;height:22px;accent-color:var(--navy7);cursor:pointer}
+table.idx td.word{font:700 16px ui-monospace,Consolas,monospace;color:var(--navy9)}
+.searchbox{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px}
+.searchbox input{flex:1;min-width:200px;font:16px ui-monospace,Consolas,monospace;border:2px solid var(--navy5);border-radius:999px;padding:7px 14px}
+.searchout{width:100%;font-weight:600;color:var(--navy7);min-height:24px}
+table.rec td,table.rec th{text-align:center}
+table.rec td.rowh{text-align:left}
+.pg{display:grid;grid-template-columns:1.35fr 1fr;gap:14px}
+.pgstage{background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px;position:relative;min-width:0}
+.pgstage svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none}
+.pgstage svg .node{cursor:pointer}
+.pgtools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 0}
+.pgtools button{font:inherit;font-size:14px;font-weight:700;border-radius:8px;padding:6px 11px;border:1.5px solid var(--navy5);background:#fff;color:var(--navy9);cursor:pointer}
+.pgtools button.pri{background:var(--navy9);border-color:var(--navy9);color:var(--gold3)}
+.pgtools button.gold{background:var(--gold5);border-color:var(--gold5)}
+.pgtools button.on{background:var(--navy1)}
+.pgside{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pgpanel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.pgpanel h3{font-family:system-ui,sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--gold7);text-transform:uppercase;margin-bottom:6px}
+.pgpanel table{width:100%;border-collapse:collapse;font-size:15px}
+.pgpanel td,.pgpanel th{padding:3px 6px;border-top:1px solid var(--line);text-align:left}
+.pgpanel th{font-size:12px;color:var(--muted);border-top:0}
+.pgpanel td.v{font:700 15px ui-monospace,Consolas,monospace;text-align:right}
+.pgpanel tr.top td{background:var(--okbg)}
+.formula{font:14.5px/1.55 ui-monospace,Consolas,monospace;color:var(--navy9);word-break:break-word}
+.formula .r{color:var(--ok);font-weight:700}
+.pgmsg{font-size:15px;font-weight:600;color:var(--navy7);min-height:22px}
+.dbar{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--navy9)}
+.dbar input{flex:1;accent-color:var(--gold5)}
+.chal{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:12px}
+.chal>div{border:1.5px solid var(--frame);border-radius:10px;padding:10px 12px;background:#fff}
+.chal>div.done{border-color:var(--ok);background:var(--okbg)}
+.chal .ct{display:block;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--gold7)}
+.chal .st{font-weight:700;font-size:14px;margin-top:6px}
+.chal>div.done .st{color:var(--ok)}
+@media (max-width:820px){input.numin{width:76px!important;font-size:15px;padding:4px}#pass input.numin{width:54px!important}table.rec td,table.rec th{padding:4px 3px}.nb,.pg,.cols2{grid-template-columns:1fr}section.act{padding:16px 12px}table.grid{font-size:14.5px}table.idx td.ck{width:44px}}
+@media print{.nbctl,.pgtools{display:none}}
+body.embed header.top,body.embed section.act:not(.shown),body.embed .finish,body.embed .secstrip,body.embed .nb,body.embed .defn,body.embed .defs,body.embed .howto,body.embed .notes{display:none}
+body.embed .wrap{max-width:none;padding:0}
+body.embed section.act{border:0;border-radius:0;margin:0;padding:4px 12px}
+body.embed section.act>header{margin-bottom:6px}
+body.embed section.act>header h2{font-size:22px}
+body.embed .embhide,body.embed .chal{display:none}body.embed .wpage b{font-size:10.5px}
+body.embed .pages{gap:6px;margin-bottom:8px}body.embed .wpage{padding:5px 9px}body.embed .wpage span{font-size:15px}
+body.embed table.idx td{padding:2px 6px}body.embed table.grid th{padding:4px 8px}
+body.embed .searchbox{margin-top:6px;padding:6px 10px}
+body.embed .pgstage svg{max-height:400px}body.embed .pgmsg{min-height:0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+<div class="kicker">Year 12 · OCR H446 1.3.4 · Web technologies</div>
+<h1>Search Engines: Indexing and PageRank</h1>
+<p>Work through the activities as we go through the lesson. Your answers save on this device automatically. At the end, press <b>Export to PDF</b> and attach the file to the Teams assignment.</p>
+<div class="idrow">
+<label>YOUR NAME<input id="stuName" autocomplete="name" placeholder="First and last name"></label>
+<label>CLASS<input id="stuClass" placeholder="e.g. 12X/Cs1"></label>
+</div>
+<div class="kwbar" aria-label="Keywords for this lesson"><span>search engine</span><span>web crawler</span><span>index</span><span>metadata</span><span>PageRank</span><span>inbound link</span><span>outbound link</span><span>damping factor</span><span>iteration</span></div>
+<div class="progress" id="progress"></div>
+</div></header>
+<main class="wrap" id="main"></main>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.14.0/dist/html2pdf.bundle.min.js" integrity="sha384-EaWTV/aVUkLz3tfwg3+5ycX7Q/d9ET9ruOKUgUuFIRUCfzHO1eo2J62a844iWPmY" crossorigin="anonymous"></script>
+<script>
+"use strict";
+const KEY = "h446-web-search-v1";
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) { S = {}; }
+S.val = S.val || {}; S.order = S.order || {}; S.ck = S.ck || {}; S.ch = S.ch || {};
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>{ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} updateProgress(); }, 150); }
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const kw = t => `<span class="kw">${t}</span>`;
+const ACTS = [];
+function section(id, n, title, pills, howto, body){
+const el = document.createElement("section");
+el.className = "act"; el.id = id;
+el.innerHTML = `<header><span class="num">${n}</span><h2>${title}</h2>${pills.map(p=>`<span class="pill${p.startsWith("🎯")?" navy":p.startsWith("⌨")?" blue":""}">${p}</span>`).join("")}</header>`
++ (howto ? `<p class="howto">${howto}</p>` : "") + body;
+$("#main").appendChild(el);
+return el;
+}
+function sectionStrip(letter, title, sub){ const el = document.createElement("div"); el.className = "secstrip"; el.innerHTML = `<span>${letter}</span><div><b>${title}</b><small>${sub}</small></div>`; $("#main").appendChild(el); }
+function defn(tag, html){ return `<div class="defn"><div class="tag">📖 KEYWORD · ${tag}</div><p>${html}</p></div>`; }
+function bar(id){ return `<div class="bar"><button class="btn" data-check="${id}">Check</button><button class="btn ghostb" data-reset="${id}">Reset</button><span class="fb" id="fb-${id}" aria-live="polite"></span></div>`; }
+function note(id, title, hint, cls="", rows=3){ return `<div class="note ${cls}"><h3>${title}</h3>${hint?`<p class="hint">${hint}</p>`:""}<textarea data-val="${id}" rows="${rows}"></textarea></div>`; }
+function selectHtml(id, ans, opts){ return `<select class="blank" data-val="${id}" data-ans="${esc(ans)}"><option value="">……</option>${opts.map(o=>`<option>${esc(o)}</option>`).join("")}</select>`; }
+function para(id, parts){
+let k = 0;
+return `<p class="para">` + parts.map(p => typeof p === "string" ? esc(p) : selectHtml(`${id}-${k++}`, p[0], [...new Set(p.slice(1))])).join("") + `</p>`;
+}
+function numIn(id, ans){ return `<input class="numin" inputmode="decimal" data-val="${id}" data-num="${ans}" placeholder="0.000" aria-label="${id}">`; }
+function feedback(id, r){
+const el = $("#fb-"+id); if (!el) return;
+el.textContent = `${r[0]} / ${r[1]} correct` + (r[0]===r[1] ? " ✓ Well done" : ": fix the red ones and check again");
+el.className = "fb " + (r[0]===r[1] ? "good" : "meh");
+}
+function checkSelects(prefix){
+let ok = 0; const sels = $$(`select[data-val^="${prefix}-"]`);
+sels.forEach(s => { s.classList.remove("right","wrong"); if (!s.value) return; const r = s.value === s.dataset.ans; s.classList.add(r?"right":"wrong"); if (r) ok++; });
+return [ok, sels.length];
+}
+function scoreSelects(prefix){
+const sels = $$(`select[data-val^="${prefix}-"]`); let ok = 0;
+sels.forEach(s => { if (S.val[s.dataset.val] === s.dataset.ans) ok++; });
+return [ok, sels.length];
+}
+const numOk = (v, ans) => { const x = parseFloat(String(v||"").replace(",", ".")); return isFinite(x) && Math.abs(x - ans) <= 0.0021; };
+function checkNums(prefix){
+let ok = 0; const ins = $$(`input.numin[data-val^="${prefix}-"]`);
+ins.forEach(i => { i.classList.remove("right","wrong"); if (!i.value.trim()) return; const r = numOk(i.value, +i.dataset.num); i.classList.add(r?"right":"wrong"); if (r) ok++; });
+return [ok, ins.length];
+}
+function scoreNums(prefix){ const ins = $$(`input.numin[data-val^="${prefix}-"]`); return [ins.filter(i => numOk(S.val[i.dataset.val], +i.dataset.num)).length, ins.length]; }
+/* ============================================================ diagrams
+Groups with data-step="n" appear at step n (they are drawn on top of earlier ones). */
+const DG = {navy9:"#0A1B2E", navy7:"#163351", navy5:"#2A5A8C", navy1:"#D7E3EF", gold5:"#C89B3C", gold3:"#E3C783", gold7:"#8A6520",
+ink:"#1A1D21", muted:"#555D68", line:"#E3E8EF", frame:"#B9C3CF", grey:"#8593A4", ok:"#1F7A4D", okbg:"#E6F4EC", bad:"#B3261E", badbg:"#FCE9E7", warn:"#8A5A00", warnbg:"#FDF1D9",
+A:"#4A8FE0", B:"#5FB548", C:"#C89B3C"};
+function mk(id, col){ return `<marker id="${id}" viewBox="0 0 15 12" refX="14" refY="6" markerWidth="15" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L15 6L0 12z" fill="${col}"/></marker>`; }
+function T(x, y, t, o={}){ return `<text x="${x}" y="${y}" font-size="${o.s||14}" font-weight="${o.w||400}" fill="${o.c||DG.ink}" text-anchor="${o.a||"middle"}"${o.f?` font-family="${o.f}"`:""}>${t}</text>`; }
+const step = (n, inner) => `<g data-step="${n}">${inner}</g>`;
+const line = (x1,y1,x2,y2,col,m,w=3) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}" marker-end="url(#${m})"/>`;
+function diagCrawler(){
+const P = {Home:[20,150], Clubs:[230,40], News:[230,260], Robotics:[440,40], "Bake sale":[440,260], "Old page":[20,320]};
+const pg = (n, fill, st, tc, dash) => { const [x,y] = P[n]; return `<rect x="${x}" y="${y}" width="140" height="56" rx="8" fill="${fill}" stroke="${st}" stroke-width="2.5"${dash?' stroke-dasharray="7 5"':""}/><rect x="${x}" y="${y}" width="140" height="15" rx="7" fill="${st}"/><rect x="${x}" y="${y+8}" width="140" height="7" fill="${st}"/><circle cx="${x+10}" cy="${y+7}" r="2.6" fill="#FFF"/><circle cx="${x+19}" cy="${y+7}" r="2.6" fill="#FFF"/>` + T(x+70, y+41, n, {s:17, c:tc}); };
+const badge = (n, k) => { const [x,y] = P[n]; return `<circle cx="${x+140}" cy="${y}" r="13" fill="${DG.ok}"/>` + T(x+140, y+5, k, {s:14, w:700, c:"#FFF"}); };
+const e = (a, sa, b, sb) => { const c = (n, s) => { const [x,y] = P[n]; return {r:[x+140,y+28], l:[x,y+28], t:[x+70,y], b:[x+70,y+56]}[s]; }; return [...c(a,sa), ...c(b,sb)]; };
+const E = [e("Home","r","Clubs","l"), e("Home","r","News","l"), e("Clubs","r","Robotics","l"), e("News","r","Robotics","l"), e("News","r","Bake sale","l"), e("Old page","t","Home","b")];
+let s = `<svg viewBox="0 0 600 400" width="600" height="400" font-family="system-ui,sans-serif" role="img" aria-label="A web crawler following links"><defs>${mk("crG", DG.grey)}${mk("crO", DG.gold5)}</defs>`;
+s += E.map(a => line(...a, DG.grey, "crG")).join("") + Object.keys(P).map(n => pg(n, "#FFF", DG.navy5, DG.navy9)).join("");
+s += step(1, pg("Home", DG.okbg, DG.ok, DG.navy9) + badge("Home", 1) + T(20, 136, "START: a seed URL", {s:14, w:700, c:DG.ok, a:"start"}));
+s += step(2, line(...E[0], DG.gold5, "crO") + line(...E[1], DG.gold5, "crO") + pg("Clubs", DG.okbg, DG.ok, DG.navy9) + badge("Clubs", 2) + pg("News", DG.okbg, DG.ok, DG.navy9) + badge("News", 3));
+s += step(3, line(...E[2], DG.gold5, "crO") + line(...E[4], DG.gold5, "crO") + pg("Robotics", DG.okbg, DG.ok, DG.navy9) + badge("Robotics", 4) + pg("Bake sale", DG.okbg, DG.ok, DG.navy9) + badge("Bake sale", 5)
++ T(440, 190, "News → Robotics:", {s:13, w:700, c:DG.warn, a:"start"}) + T(440, 207, "already visited, skip", {s:13, c:DG.warn, a:"start"}));
+s += step(4, pg("Old page", DG.badbg, DG.bad, DG.bad, true) + T(176, 342, "No page links TO it,", {s:14, w:700, c:DG.bad, a:"start"}) + T(176, 360, "so the crawler never finds it", {s:14, w:700, c:DG.bad, a:"start"}));
+s += step(5, `<rect x="250" y="116" width="330" height="44" rx="8" fill="${DG.navy9}"/>` + T(415, 135, "Every page visited: words, metadata", {s:13.5, w:700, c:DG.gold3}) + T(415, 152, "and links are stored in the index", {s:13.5, w:700, c:DG.gold3}));
+return {svg: s + "</svg>", steps: [
+"The crawler starts from a seed URL: a page it already knows about. It downloads the page and reads its words and its links.",
+"It follows each hyperlink on Home to find new pages (Clubs and News), and visits those.",
+"It keeps following links. News links to Robotics, which has already been visited, so it is skipped.",
+"Old page links out to Home, but no page links to it. Crawlers only find pages by following links, so Old page is never found or indexed.",
+"For every page it visits, the search engine stores the words, metadata and links in its index. This happens all the time, not when you search."]};
+}
+function diagIndex(){
+const pages = [["PAGE 1 · BUS TIMES","Buses to Eltham every ten minutes."],["PAGE 2 · ELTHAM PALACE","Visit the palace gardens in Eltham."],["PAGE 3 · GARDEN TIPS","Plant bulbs in the garden in autumn."]];
+const words = ["eltham","buses","palace","garden(s)","autumn"];
+const ry = i => 70 + i * 44;
+const cellv = (i, t, col=DG.navy9) => `<rect x="452" y="${ry(i)-28}" width="136" height="38" fill="#FFF"/>` + T(462, ry(i)-4, t, {s:16, w:700, c:col, a:"start"});
+let s = `<svg viewBox="0 0 600 400" width="600" height="400" font-family="system-ui,sans-serif" role="img" aria-label="Building an index from three pages">`;
+pages.forEach(([h, t], i) => { const y = 16 + i * 92; s += `<rect x="10" y="${y}" width="270" height="76" rx="9" fill="#FFF" stroke="${DG.line}"/><rect x="10" y="${y}" width="6" height="76" fill="${DG.navy5}"/>` + T(26, y+24, h, {s:12, w:700, c:DG.navy5, a:"start"}) + T(26, y+50, t, {s:14.5, a:"start"}); });
+s += T(20, 312, "Stop words (to, the, in, every) are left out.", {s:13, c:DG.muted, a:"start"});
+s += `<rect x="300" y="16" width="290" height="32" fill="${DG.navy9}"/>` + T(310, 37, "Word", {s:14, w:700, c:"#FFF", a:"start"}) + T(462, 37, "Pages", {s:14, w:700, c:"#FFF", a:"start"});
+words.forEach((w, i) => { s += `<line x1="300" y1="${ry(i)+14}" x2="590" y2="${ry(i)+14}" stroke="${DG.line}"/>` + T(310, ry(i)-4, w, {s:16, f:"ui-monospace,Consolas,monospace", a:"start"}); });
+s += step(1, `<rect x="10" y="16" width="270" height="76" rx="9" fill="none" stroke="${DG.gold5}" stroke-width="3"/>` + cellv(0, "1") + cellv(1, "1"));
+s += step(2, `<rect x="10" y="108" width="270" height="76" rx="9" fill="none" stroke="${DG.gold5}" stroke-width="3"/>` + cellv(0, "1, 2") + cellv(2, "2") + cellv(3, "2"));
+s += step(3, `<rect x="10" y="200" width="270" height="76" rx="9" fill="none" stroke="${DG.gold5}" stroke-width="3"/>` + cellv(3, "2, 3") + cellv(4, "3"));
+s += step(4, `<rect x="300" y="${ry(0)-30}" width="290" height="42" fill="${DG.warnbg}" opacity=".6"/><rect x="300" y="${ry(3)-30}" width="290" height="42" fill="${DG.warnbg}" opacity=".6"/>`
++ `<rect x="300" y="300" width="290" height="80" rx="9" fill="${DG.navy9}"/>` + T(445, 326, "search: eltham garden", {s:14, w:700, c:DG.gold3, f:"ui-monospace,Consolas,monospace"})
++ T(445, 348, "{1, 2} and {2, 3} → page 2", {s:15, w:700, c:"#FFF"}) + T(445, 368, "only the index is read", {s:13, c:DG.navy1}));
+return {svg: s + "</svg>", steps: [
+"Page 1 is crawled. Each word (apart from stop words) gets a row in the index, recording that it appears on page 1.",
+"Page 2 is crawled. ‘eltham’ already has a row, so page 2 is added to it. New rows for ‘palace’ and ‘gardens’.",
+"Page 3 is crawled. ‘garden’ is added to the garden(s) row, and ‘autumn’ gets a new row.",
+"A search for ‘eltham garden’ looks up both rows and keeps the pages in both: page 2. No web page is read when you search."]};
+}
+const G1HIST = [[1,1,1],[1,0.575,1.425],[1.361,0.575,1.064],[1.054,0.729,1.217],[1.163,0.644,1.192]];
+function g1Graph(vals, mid, sc=1){
+const N = {A:[110,100,DG.A], B:[430,100,DG.B], C:[270,330,DG.C]};
+const nd = (k, v) => { const [x,y,c] = N[k]; return `<circle cx="${x}" cy="${y}" r="54" fill="#FFF" stroke="${c}" stroke-width="5"/>` + T(x, y-6, k, {s:32, f:"Georgia,serif", c:DG.navy9}) + T(x, y+26, v.toFixed(3), {s:21, w:700, c:DG.navy7}); };
+const lab = (x, y, t) => `<rect x="${x-18}" y="${y-18}" width="36" height="26" rx="6" fill="${DG.navy9}"/>` + T(x, y+1, t, {s:17, w:700, c:DG.gold3});
+let s = line(166,100,370,100,DG.navy5,mid,3.5) + line(132,150,226,286,DG.navy5,mid,3.5) + line(400,148,307,286,DG.navy5,mid,3.5) + line(216,318,92,152,DG.navy5,mid,3.5)
++ lab(268, 92, "½") + lab(200, 214, "½") + lab(372, 222, "1") + lab(122, 256, "1");
+return {s, nd};
+}
+function diagVotes(){
+const g = g1Graph(null, "vtA");
+let s = `<svg viewBox="0 0 600 400" width="600" height="400" font-family="system-ui,sans-serif" role="img" aria-label="PageRank scores changing over iterations"><defs>${mk("vtA", DG.navy5)}</defs>` + g.s;
+s += ["A","B","C"].map((k,i) => g.nd(k, G1HIST[0][i])).join("") + T(462, 250, "START: ALL = 1", {s:14, w:700, c:DG.gold7, a:"start"});
+const lab = ["Iteration 1", "Iteration 2", "Iteration 3", "After 20: settled"];
+for (let i = 1; i <= 4; i++) s += step(i, `<rect x="455" y="232" width="145" height="26" fill="#FFF"/>` + T(462, 250, lab[i-1].toUpperCase(), {s:13, w:700, c:DG.gold7, a:"start"}) + ["A","B","C"].map((k,j) => g.nd(k, G1HIST[i][j])).join(""));
+s += step(5, `<rect x="380" y="290" width="210" height="96" rx="9" fill="${DG.navy9}"/>` + T(485, 316, "Final order", {s:13, w:700, c:DG.gold3}) + T(485, 344, "C · A · B", {s:24, w:700, c:"#FFF", f:"Georgia,serif"}) + T(485, 370, "A’s one link is from C, the top page", {s:11.5, c:DG.navy1}));
+return {svg: s + "</svg>", steps: [
+"Iteration 1. C collects half of A’s score and all of B’s, so it jumps to 1.425. B only gets half of A’s score: 0.575.",
+"Iteration 2. C passes its big score to A (C’s only outbound link), so A rises to 1.361.",
+"Iteration 3. The scores bounce up and down, but each swing is smaller.",
+"After about 20 iterations the scores stop changing. They have converged.",
+"Final order C, A, B. C has two inbound links. A has only one, but it comes from C, the top page, which gives A its whole vote."]};
+}
+function staticSvg(inner, vb="0 0 540 440"){ return `<svg viewBox="${vb}" width="100%" font-family="system-ui,sans-serif">${inner}</svg>`; }
+function diagG1static(){ const g = g1Graph(null, "g1sA"); return staticSvg(`<defs>${mk("g1sA", DG.navy5)}</defs>` + g.s + ["A","B","C"].map(k => g.nd(k, 1)).join(""), "0 0 540 400"); }
+function diagG2static(){
+const P = {H:[110,90,"Home"], R:[410,90,"Robotics"], N:[110,320,"News"], B:[410,320,"Blog"]};
+let s = `<defs>${mk("g2sA", DG.navy5)}</defs>` + line(166,76,350,76,DG.navy5,"g2sA",3.5) + line(352,108,168,108,DG.navy5,"g2sA",3.5) + line(110,146,110,260,DG.navy5,"g2sA",3.5) + line(150,282,368,132,DG.navy5,"g2sA",3.5) + line(410,262,410,150,DG.navy5,"g2sA",3.5);
+Object.entries(P).forEach(([k,[x,y,n]]) => { s += `<circle cx="${x}" cy="${y}" r="54" fill="#FFF" stroke="${k==="B"?DG.bad:DG.gold5}" stroke-width="5"/>` + T(x, y+4, k, {s:32, f:"Georgia,serif", c:DG.navy9}) + T(x, y+30, n, {s:15, c:DG.muted}); });
+return staticSvg(s, "0 0 520 400");
+}
+const DIAGRAMS = {crawl: diagCrawler, index: diagIndex, votes: diagVotes};
+const NB = [];
+function notesBlock(id, key, title, prompts){
+const d = DIAGRAMS[key](); NB.push({id, key, title, steps: d.steps});
+return `<div class="nb" id="nb-${id}"><div class="nbfig"><div class="nbsvg">${d.svg}</div>`
++ `<div class="nbctl"><button data-nb="${id}" data-act="prev" aria-label="Previous step">◀</button><button class="pri" data-nb="${id}" data-act="play">▶ Play</button><button data-nb="${id}" data-act="next">Step ▶</button><button data-nb="${id}" data-act="all">Show all</button><span class="nbstep" id="nbs-${id}"></span></div>`
++ `<p class="nbcap" id="nbc-${id}"></p></div>`
 + `<div class="nbnotes"><h3>✎ My notes · ${title}</h3><ul>${prompts.map(p=>`<li>${p}</li>`).join("")}</ul><textarea data-val="nb-${id}" rows="9" placeholder="Write your own notes from the discussion and the diagram…"></textarea></div></div>`;
 }
 const nbState = {}, nbTimers = {};
